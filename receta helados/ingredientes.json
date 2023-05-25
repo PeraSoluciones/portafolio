@@ -1,0 +1,197 @@
+[
+  {
+    "Codigo": "ING001",
+    "Descripcion": "Azucar Kg",
+    "Valor": 0.9
+  },
+  {
+    "Codigo": "ING002",
+    "Descripcion": "DTX",
+    "Valor": 2.8
+  },
+  {
+    "Codigo": "ING003",
+    "Descripcion": "MTX",
+    "Valor": 1.68
+  },
+  {
+    "Codigo": "ING004",
+    "Descripcion": "Leche en polvo Kg",
+    "Valor": 5.8
+  },
+  {
+    "Codigo": "ING005",
+    "Descripcion": "Crema de leche Kg",
+    "Valor": 3.39
+  },
+  {
+    "Codigo": "ING006",
+    "Descripcion": "Neutro Industrial Kg",
+    "Valor": 14
+  },
+  {
+    "Codigo": "ING007",
+    "Descripcion": "Leche entera Kg",
+    "Valor": 0.618
+  },
+  {
+    "Codigo": "ING008",
+    "Descripcion": "Pulpa de mora Kg",
+    "Valor": 1.4
+  },
+  {
+    "Codigo": "ING009",
+    "Descripcion": "Fundas plasticas ciento",
+    "Valor": 0.75
+  },
+  {
+    "Codigo": "ING010",
+    "Descripcion": "Palos de helado bulto",
+    "Valor": 45
+  },
+  {
+    "Codigo": "ING011",
+    "Descripcion": "Pulpa de coco Kg",
+    "Valor": 2.5
+  },
+  {
+    "Codigo": "ING012",
+    "Descripcion": "Pulpa de maracuya Kg",
+    "Valor": 3
+  },
+  {
+    "Codigo": "ING013",
+    "Descripcion": "Pulpa de Taxo kg",
+    "Valor": 1.25
+  },
+  {
+    "Codigo": "ING014",
+    "Descripcion": "Cacao Alcalino kg",
+    "Valor": 4.6912
+  },
+  {
+    "Codigo": "ING015",
+    "Descripcion": "Cocoa Kg",
+    "Valor": 3.5
+  },
+  {
+    "Codigo": "ING016",
+    "Descripcion": "Cacao en Pastilla Kg",
+    "Valor": 8.75
+  },
+  {
+    "Codigo": "ING017",
+    "Descripcion": "Pulpa de Frutilla Kg",
+    "Valor": 2
+  },
+  {
+    "Codigo": "ING018",
+    "Descripcion": "Pulpa de naranjilla Kg",
+    "Valor": 1.25
+  },
+  {
+    "Codigo": "ING019",
+    "Descripcion": "Sandía Unidad",
+    "Valor": 2.75
+  },
+  {
+    "Codigo": "ING020",
+    "Descripcion": "Saborizante de chicle Kg",
+    "Valor": 15.41
+  },
+  {
+    "Codigo": "ING021",
+    "Descripcion": "Saborizante de mora Kg",
+    "Valor": 26.26
+  },
+  {
+    "Codigo": "ING022",
+    "Descripcion": "Saborizante de ron pasas Kg",
+    "Valor": 21.62
+  },
+  {
+    "Codigo": "ING023",
+    "Descripcion": "Saborizante de tuti fruti Kg",
+    "Valor": 19.95
+  },
+  {
+    "Codigo": "ING024",
+    "Descripcion": "Pasta de chicle Kg",
+    "Valor": 15.12
+  },
+  {
+    "Codigo": "ING025",
+    "Descripcion": "Agua de coco",
+    "Valor": 0.75
+  },
+  {
+    "Codigo": "ING026",
+    "Descripcion": "Agua sin gas Lt",
+    "Valor": 0.075
+  },
+  {
+    "Codigo": "ING027",
+    "Descripcion": "Pasas maceradas Kg",
+    "Valor": 4.666666667
+  },
+  {
+    "Codigo": "ING028",
+    "Descripcion": "Neutro Leche 5 Kg",
+    "Valor": 12.768
+  },
+  {
+    "Codigo": "ING029",
+    "Descripcion": "Neutro Fruta 6 Kg",
+    "Valor": 11.2
+  },
+  {
+    "Codigo": "ING030",
+    "Descripcion": "Glucosa FTX Kg",
+    "Valor": 7.28
+  },
+  {
+    "Codigo": "ING031",
+    "Descripcion": "Acido citrico Kg",
+    "Valor": 6
+  },
+  {
+    "Codigo": "ING032",
+    "Descripcion": "Fibra Gel Kg",
+    "Valor": 11.2
+  },
+  {
+    "Codigo": "ING033",
+    "Descripcion": "Sal yodada Kg",
+    "Valor": 0.5
+  },
+  {
+    "Codigo": "ING034",
+    "Descripcion": "Suero de leche Kg",
+    "Valor": 4.2
+  },
+  {
+    "Codigo": "ING035",
+    "Descripcion": "Glucosa líquida Kg",
+    "Valor": 2.52
+  },
+  {
+    "Codigo": "ING036",
+    "Descripcion": "Saborizante de limón",
+    "Valor": 24
+  },
+  {
+    "Codigo": "ING037",
+    "Descripcion": "Zumo de limón",
+    "Valor": 3
+  },
+  {
+    "Codigo": "ING038",
+    "Descripcion": "Galleta oreo",
+    "Valor": 10.11
+  },
+  {
+    "Codigo": "ING039",
+    "Descripcion": "Saborizante de oreo",
+    "Valor": 21
+  }
+]

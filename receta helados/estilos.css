@@ -1,4 +1,101 @@
-th,
-td {
-  border: 1px solid;
+.alignRight {
+  text-align: right;
+}
+
+.alignLeft {
+  text-align: left;
+}
+div.centrada {
+  text-align: center;
+}
+div.centrada table {
+  margin: 0 auto;
+  text-align: left;
+}
+.error {
+  border: 2px solid red !important;
+  border-radius: 4px !important;
+}
+.mensaje {
+  border: none;
+}
+.mensajeError {
+  border: 2px solid red;
+  border-radius: 4px;
+  text-align: center !important;
+  background-color: lightsalmon !important;
+  color: white;
+}
+.estilo-tabla {
+  /* border-collapse: separate; */
+  margin: 12px 0;
+  font-size: 0.9em;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.estilo-tabla thead tr {
+  background-color: SteelBlue;
+  color: white;
+  text-align: center;
+  font-size: 1.5em;
+}
+.estilo-tabla th,
+.estilo-tabla td {
+  padding: 7px 10px;
+}
+.estilo-tabla tbody tr {
+  border-bottom: 1px solid #dddddd;
+  background-color: #f3f3f3;
+}
+.estilo-tabla tfoot tr td {
+  border-top: 3px solid black;
+  background-color: #adcee2;
+}
+.estilo-tabla tfoot tr td.sinFormato {
+  border: none;
+  background-color: #ffffff;
+}
+.estilo-tabla tbody tr.encabezados {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  background-color: cornflowerblue;
+}
+.estilo-tabla tbody tr td input,
+.estilo-tabla tbody tr td.subtotal,
+.estilo-tabla tbody tr td.subtotalCategoria,
+.estilo-tabla tbody tr td.totalCategoria,
+.estilo-tabla tbody tr td.CostoKg,
+.estilo-tabla tbody tr td.costoTotal,
+.estilo-tabla tfoot tr td {
+  text-align: right;
+}
+.estilo-tabla tbody tr td.subtotal,
+.estilo-tabla tbody tr td.subtotalCategoria,
+.estilo-tabla tbody tr td.totalCategoria,
+.estilo-tabla tbody tr td.CostoKg,
+.estilo-tabla tbody tr td.costoTotal,
+.estilo-tabla tfoot tr td {
+  font-weight: bold;
+}
+.estilo-tabla tbody tr td.nombreCategoria,
+.estilo-tabla tfoot tr td.totalCategorias,
+.estilo-tabla tfoot tr td.totalCostos,
+.estilo-tabla tfoot tr td.totalGlobalPercent,
+.estilo-tabla tfoot tr td.totales {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+/* .estilo-tabla tfoot tr td.totales {
+  font-weight: bold;
+} */
+.estilo-tabla tbody tr td input,
+.estilo-tabla tfoot tr td input {
+  width: 30px;
+  border: 1px solid blue;
+  border-radius: 4px;
+}
+.invisible {
+  visibility: hidden;
 }

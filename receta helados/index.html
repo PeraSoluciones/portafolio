@@ -2,265 +2,216 @@
 <html>
     <header>
         <link rel="stylesheet" href="./estilos.css" type="text/css" media="all" />
+        <script type="text/javascript" src="./operaciones.js"></script>
     </header>
-    <table>
-        <thead>
-            <tr>
-                <th colspan="10">COCO</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="2">&nbsp;</td>
-                <td colspan="3">Porcentajes</td>
-                <td colspan="2">Subtotales</td>
-                <td>Totales</td>
-                <td>Costo/Kg</td>
-                <td>Costos Totales</td>
-            </tr>
-            <tr>
-                <td rowspan="7">SOLIDOS</td>
-                <td rowspan="3">AZUCARES</td>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td rowspan="2">GRASAS</td>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>MEJORADOR DE ESTRUCTURAS</td>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>OTROS</td>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td rowspan="2">LIQUIDOS</td>
-                <td rowspan="2">&nbsp;</td>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina">Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="text" name="porcentaje_global" />
-                </td>
-                <td>
-                    <select name="ingredientes">
-                        <option value="Azucar">Azucar</option>
-                        <option value="Maltodextrina"> Maltodextrina</option>
-                        <option value="Dextrosa">Dextrosa</option>
-                        <option value="Suero de leche">Suero de leche</option>
-                        <option value="Crema de leche">Crema de leche</option>
-                        <option value="Neutro Industrial">Neutro Industrial</option>
-                        <option value="Pulpa de coco">Pulpa de coco</option>
-                        <option value="Leche entera">Leche entera</option>
-                        <option value="Agua de Coco">Agua de Coco</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="text" name="porcentaje_ingrediente" />
-                </td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-            </tr>
-        </tbody>
 
-    </table>
+    <body>
+        <div class="centrada">
+            <table class="estilo-tabla">
+                <thead>
+                    <tr>
+                        <th colspan="10">COCO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="encabezados">
+                        <td colspan="2">&nbsp;</td>
+                        <td colspan="3">Porcentajes/Ingredientes</td>
+                        <td colspan="2">Subtotales</td>
+                        <td>Totales</td>
+                        <td>Costo/Kg</td>
+                        <td>Costos Totales</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td rowspan="7" class="nombreCategoria">SOLIDOS</td>
+                        <td rowspan="3" class="nombreCategoria">AZUCARES</td>
+                        <td rowspan="3" class="porcentajeGlobal">
+                            <input type="text" name="porcentajeGlobalL1" id="porcentajeGlobalL1"
+                                class="valorPorcentajeGlobal" />
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL1">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL1" id="porcentajeIngredienteL1"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td rowspan="3" class="subtotalCategoria">&nbsp;</td>
+                        <td rowspan="7" class="totalCategoria">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td>
+                            <select name="ingredientes" id="ingredientesL2">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL2" id="porcentajeIngredienteL2"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td>
+                            <select name="ingredientes" id="ingredientesL3">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL3" id="porcentajeIngredienteL3"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td rowspan="2" class="nombreCategoria">GRASAS</td>
+                        <td rowspan="2" class="porcentajeGlobal">
+                            <input type="text" name="porcentajeGlobalL4" id="porcentajeGlobalL4"
+                                class="valorPorcentajeGlobal" />
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL4">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL4" id="porcentajeIngredienteL4"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td rowspan="2" class="subtotalCategoria">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL5">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL5" id="porcentajeIngredienteL5"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td class="nombreCategoria">MEJORADOR DE ESTRUCTURAS</td>
+                        <td class="porcentajeGlobal">
+                            <input type="text" name="porcentajeGlobalL6" id="porcentajeGlobalL6"
+                                class="valorPorcentajeGlobal" />
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL6">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL6" id="porcentajeIngredienteL6"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="subtotalCategoria">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="solidos">
+                        <td class="nombreCategoria">OTROS</td>
+                        <td class="porcentajeGlobal">
+                            <input type="text" name="porcentajeGlobalL7" id="porcentajeGlobalL7"
+                                class="valorPorcentajeGlobal" />
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL7">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL7" id="porcentajeIngredienteL7"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="subtotalCategoria">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="liquidos">
+                        <td rowspan="2" class="nombreCategoria">LIQUIDOS</td>
+                        <td rowspan="2">&nbsp;</td>
+                        <td rowspan="2" class="porcentajeGlobal">
+                            <input type="text" name="porcentajeGlobalL8" id="porcentajeGlobalL8"
+                                class="valorPorcentajeGlobal" />
+                        </td>
+                        <td>
+                            <select name="ingredientes" id="ingredientesL8">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL8" id="porcentajeIngredienteL8"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td rowspan="2" class="subtotalCategoria">&nbsp;</td>
+                        <td rowspan="2" class="totalCategoria">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                    <tr class="liquidos">
+                        <td>
+                            <select name="ingredientes" id="ingredientesL9">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="porcentajeIngredienteL9" id="porcentajeIngredienteL9"
+                                class="porcentajeIngrediente" />
+                        </td>
+                        <td class="subtotal">&nbsp;</td>
+                        <td class="CostoKg">&nbsp;</td>
+                        <td class="costoTotal">&nbsp;</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="totales">
+                        <td colspan="2" class="totales">TOTALES</td>
+                        <td class="totalGlobalPercent">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td colspan="3" class="totalCategorias">&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td class="totalCostos">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="sinFormato">&nbsp;</td>
+                        <td>Cantidad de Helados:</td>
+                        <td class="cantidadHelados totales">&nbsp;</td>
+                        <td colspan="4">Costo helado:</td>
+                        <td class="costoHelado totales"></td>
+                    </tr>
+                    <tr class="invisible">
+                        <td colspan="10">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5">
+                            Peso en gramos:
+                            <input type="text" name="peso" id="peso" />
+                        </td>
+                        <td colspan="5">
+                            Cantidad de la Mezcla en gramos:
+                            <input type="text" name="cantidadMezcla" id="cantidadMezcla" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="10" class="mensaje invisible">&nbsp;</td>
+                    </tr>
+                </tfoot>
+
+            </table>
+        </div>
+    </body>
 
 </html>
