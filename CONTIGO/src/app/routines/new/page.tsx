@@ -1,0 +1,281 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAppStore } from '@/store/app-store';
+import { Routine } from '@/types';
+import { ArrowLeft, Clock } from 'lucide-react';
+import Link from 'next/link';
+
+const daysOfWeek = [
+  { id: 'LUN', label: 'Lunes' },
+  { id: 'MAR', label: 'Martes' },
+  { id: 'MIÉ', label: 'Miércoles' },
+  { id: 'JUE', label: 'Jueves' },
+  { id: 'VIE', label: 'Viernes' },
+  { id: 'SÁB', label: 'Sábado' },
+  { id: 'DOM', label: 'Domingo' },
+];
+
+export default function NewRoutinePage() {
+  const { user, children, selectedChild, setSelectedChild } = useAppStore();
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    time: '',
+    days: [] as string[],
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    if (!user) {
+      setError('Debes iniciar sesión para crear una rutina');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!selectedChild) {
+      setError('Debes seleccionar un hijo');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.days.length === 0) {
+      setError('Debes seleccionar al menos un día de la semana');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      
+      const { data, error: insertError } = await supabase
+        .from('routines')
+        .insert([
+          {
+            child_id: selectedChild.id,
+            title: formData.title,
+            description: formData.description,
+            time: formData.time,
+            days: formData.days,
+            is_active: true,
+          },
+        ])
+        .select()
+        .single();
+
+      if (insertError) {
+        setError(insertError.message);
+        return;
+      }
+
+      // Redirigir a la página de rutinas
+      router.push('/routines');
+    } catch (err) {
+      setError('Ocurrió un error inesperado');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDayChange = (day: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      days: checked
+        ? [...prev.days, day]
+        : prev.days.filter(d => d !== day)
+    }));
+  };
+
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(time);
+      }
+    }
+    return slots;
+  };
+
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">CONTIGO</h1>
+              <nav className="ml-10 flex space-x-8">
+                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
+                  Dashboard
+                </Link>
+                <Link href="/children" className="text-gray-600 hover:text-gray-900">
+                  Hijos
+                </Link>
+                <Link href="/routines" className="text-blue-600 font-medium">
+                  Rutinas
+                </Link>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <Link href="/routines" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver a rutinas
+          </Link>
+          <h2 className="text-3xl font-bold text-gray-900">Nueva rutina</h2>
+          <p className="text-gray-600 mt-2">
+            Crea una rutina para establecer estructura y organización
+          </p>
+        </div>
+
+        {/* Selector de hijo */}
+        {children.length > 1 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Selecciona un hijo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-4">
+                {children.map((child) => (
+                  <Card
+                    key={child.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedChild?.id === child.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
+                    }`}
+                    onClick={() => setSelectedChild(child)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{child.name}</h3>
+                          <p className="text-sm text-gray-500">{child.age} años</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Clock className="h-5 w-5" />
+              <span>Información de la rutina</span>
+            </CardTitle>
+            <CardDescription>
+              Define los detalles de la rutina diaria
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título de la rutina</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  required
+                  placeholder="Ej: Desayuno, Tarea escolar, Hora de dormir"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Descripción (opcional)</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="Describe en qué consiste la rutina..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="time">Hora</Label>
+                <Select value={formData.time} onValueChange={(value) => handleInputChange('time', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona la hora" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateTimeSlots().map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Días de la semana</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {daysOfWeek.map((day) => (
+                    <div key={day.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={day.id}
+                        checked={formData.days.includes(day.id)}
+                        onCheckedChange={(checked) => handleDayChange(day.id, checked as boolean)}
+                      />
+                      <Label htmlFor={day.id} className="text-sm">
+                        {day.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex justify-end space-x-4">
+                <Link href="/routines">
+                  <Button variant="outline">Cancelar</Button>
+                </Link>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Creando...' : 'Crear rutina'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
