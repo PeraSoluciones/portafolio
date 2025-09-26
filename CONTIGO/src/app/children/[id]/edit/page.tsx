@@ -184,52 +184,6 @@ export default function EditChildPage() {
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
-      <header className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center h-16'>
-            <div className='flex items-center'>
-              <h1 className='text-2xl font-bold text-gray-900'>CONTIGO</h1>
-              <nav className='ml-10 flex space-x-8'>
-                <Link
-                  href='/dashboard'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Dashboard
-                </Link>
-                <Link href='/children' className='text-blue-600 font-medium'>
-                  Hijos
-                </Link>
-                <Link
-                  href='/routines'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Rutinas
-                </Link>
-                <Link
-                  href='/habits'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Hábitos
-                </Link>
-                <Link
-                  href='/behaviors'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Comportamientos
-                </Link>
-                <Link
-                  href='/rewards'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Recompensas
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
           <Link

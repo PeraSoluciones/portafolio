@@ -45,71 +45,113 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  
+  /* Colores principales - Tema claro */
+  --primary: hsl(204 78% 43%); /* steel-blue */
+  --primary-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  --secondary: hsl(271 31% 44%); /* ultra-violet */
+  --secondary-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  --accent: hsl(44 100% 61%); /* sunglow */
+  --accent-foreground: hsl(0 0% 10%); /* Negro para contraste */
+  
+  --destructive: hsl(358 100% 68%); /* bittersweet */
+  --destructive-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  --success: hsl(92 68% 47%); /* yellow-green */
+  --success-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  /* Colores de fondo y texto */
+  --background: hsl(0 0% 100%); /* Blanco puro */
+  --foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
+  
+  /* Componentes */
+  --card: hsl(0 0% 100%); /* Blanco puro */
+  --card-foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
+  
+  --popover: hsl(0 0% 100%); /* Blanco puro */
+  --popover-foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
+  
+  --muted: hsl(210 40% 98%); /* Gris muy claro */
+  --muted-foreground: hsl(215.4 16.3% 46.9%); /* Gris medio para texto */
+  
+  --border: hsl(214.3 31.8% 91.4%); /* Gris claro para bordes */
+  --input: hsl(214.3 31.8% 91.4%); /* Gris claro para inputs */
+  --ring: hsl(204 78% 43%); /* steel-blue para focus ring */
+  
+  /* Colores para gráficos */
+  --chart-1: hsl(204 78% 43%); /* steel-blue */
+  --chart-2: hsl(271 31% 44%); /* ultra-violet */
+  --chart-3: hsl(44 100% 61%); /* sunglow */
+  --chart-4: hsl(358 100% 68%); /* bittersweet */
+  --chart-5: hsl(92 68% 47%); /* yellow-green */
+  
+  /* Sidebar */
+  --sidebar: hsl(0 0% 98%); /* Fondo muy claro */
+  --sidebar-foreground: hsl(222.2 84% 4.9%); /* Texto oscuro */
+  --sidebar-primary: hsl(201 78% 43%); /* steel-blue */
+  --sidebar-primary-foreground: hsl(0 0% 98%); /* Blanco */
+  --sidebar-accent: hsl(210 40% 98%); /* Fondo muy claro */
+  --sidebar-accent-foreground: hsl(222.2 84% 4.9%); /* Texto oscuro */
+  --sidebar-border: hsl(214.3 31.8% 91.4%); /* Borde gris claro */
+  --sidebar-ring: hsl(204 78% 43%); /* steel-blue */
+
+  /* Sidebar - Links */
+  --steel-blue: hsl(201 78% 43%); /* steel-blue */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Colores principales - Tema oscuro */
+  --primary: hsl(204 78% 53%); /* steel-blue más claro */
+  --primary-foreground: hsl(0 0% 10%); /* Negro para contraste */
+  
+  --secondary: hsl(271 31% 54%); /* ultra-violet más claro */
+  --secondary-foreground: hsl(0 0% 10%); /* Negro para contraste */
+  
+  --accent: hsl(44 100% 51%); /* sunglow más oscuro */
+  --accent-foreground: hsl(0 0% 10%); /* Negro para contraste */
+  
+  --destructive: hsl(358 100% 58%); /* bittersweet más oscuro */
+  --destructive-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  --success: hsl(92 68% 37%); /* yellow-green más oscuro */
+  --success-foreground: hsl(0 0% 98%); /* Blanco para contraste */
+  
+  /* Colores de fondo y texto */
+  --background: hsl(222.2 84% 4.9%); /* Casi negro */
+  --foreground: hsl(210 40% 98%); /* Blanco para texto */
+  
+  /* Componentes */
+  --card: hsl(222.2 84% 4.9%); /* Casi negro */
+  --card-foreground: hsl(210 40% 98%); /* Blanco para texto */
+  
+  --popover: hsl(222.2 84% 4.9%); /* Casi negro */
+  --popover-foreground: hsl(210 40% 98%); /* Blanco para texto */
+  
+  --muted: hsl(217.2 32.6% 17.5%); /* Gris oscuro */
+  --muted-foreground: hsl(215 20.2% 65.1%); /* Gris claro para texto */
+  
+  --border: hsl(217.2 32.6% 17.5%); /* Gris oscuro para bordes */
+  --input: hsl(217.2 32.6% 17.5%); /* Gris oscuro para inputs */
+  --ring: hsl(204 78% 53%); /* steel-blue más claro para focus ring */
+  
+  /* Colores para gráficos */
+  --chart-1: hsl(204 78% 53%); /* steel-blue más claro */
+  --chart-2: hsl(271 31% 54%); /* ultra-violet más claro */
+  --chart-3: hsl(44 100% 51%); /* sunglow más oscuro */
+  --chart-4: hsl(358 100% 58%); /* bittersweet más oscuro */
+  --chart-5: hsl(92 68% 37%); /* yellow-green más oscuro */
+  
+  /* Sidebar */
+  --sidebar: hsl(222.2 84% 4.9%); /* Fondo oscuro */
+  --sidebar-foreground: hsl(210 40% 98%); /* Texto claro */
+  --sidebar-primary: hsl(204 78% 53%); /* steel-blue más claro */
+  --sidebar-primary-foreground: hsl(0 0% 10%); /* Negro */
+  --sidebar-accent: hsl(217.2 32.6% 17.5%); /* Fondo gris oscuro */
+  --sidebar-accent-foreground: hsl(210 40% 98%); /* Texto claro */
+  --sidebar-border: hsl(217.2 32.6% 17.5%); /* Borde gris oscuro */
+  --sidebar-ring: hsl(204 78% 53%); /* steel-blue más claro */
 }
 
 @layer base {

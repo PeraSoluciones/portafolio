@@ -120,38 +120,7 @@ export default function RoutinesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">CONTIGO</h1>
-              <nav className="ml-10 flex space-x-8">
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                  Dashboard
-                </Link>
-                <Link href="/children" className="text-gray-600 hover:text-gray-900">
-                  Hijos
-                </Link>
-                <Link href="/routines" className="text-blue-600 font-medium">
-                  Rutinas
-                </Link>
-                <Link href="/habits" className="text-gray-600 hover:text-gray-900">
-                  Hábitos
-                </Link>
-              </nav>
-            </div>
-            <Link href="/routines/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva rutina
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Selector de hijo */}
         {children.length > 1 && (

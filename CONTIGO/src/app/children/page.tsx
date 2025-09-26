@@ -112,46 +112,6 @@ export default function ChildrenPage() {
 
   return (
     <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
-      <header className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex justify-between items-center h-16'>
-            <div className='flex items-center'>
-              <h1 className='text-2xl font-bold text-gray-900'>CONTIGO</h1>
-              <nav className='ml-10 flex space-x-8'>
-                <Link
-                  href='/dashboard'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Dashboard
-                </Link>
-                <Link href='/children' className='text-blue-600 font-medium'>
-                  Hijos
-                </Link>
-                <Link
-                  href='/routines'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Rutinas
-                </Link>
-                <Link
-                  href='/habits'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Hábitos
-                </Link>
-              </nav>
-            </div>
-            <Link href='/children/new'>
-              <Button>
-                <Plus className='h-4 w-4 mr-2' />
-                Agregar hijo
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
           <h2 className='text-3xl font-bold text-gray-900'>Mis hijos</h2>

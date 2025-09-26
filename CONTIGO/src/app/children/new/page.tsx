@@ -6,8 +6,20 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { Child } from '@/types';
@@ -39,7 +51,7 @@ export default function NewChildPage() {
 
     try {
       const supabase = createClient();
-      
+
       const { data, error: insertError } = await supabase
         .from('children')
         .insert([
@@ -69,38 +81,24 @@ export default function NewChildPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">CONTIGO</h1>
-              <nav className="ml-10 flex space-x-8">
-                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                  Dashboard
-                </Link>
-                <Link href="/children" className="text-blue-600 font-medium">
-                  Hijos
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <Link href="/children" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className='min-h-screen bg-gray-50'>
+      <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='mb-8'>
+          <Link
+            href='/children'
+            className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
+          >
+            <ArrowLeft className='h-4 w-4 mr-2' />
             Volver a hijos
           </Link>
-          <h2 className="text-3xl font-bold text-gray-900">Agregar nuevo hijo</h2>
-          <p className="text-gray-600 mt-2">
+          <h2 className='text-3xl font-bold text-gray-900'>
+            Agregar nuevo hijo
+          </h2>
+          <p className='text-gray-600 mt-2'>
             Ingresa la información de tu hijo para crear su perfil
           </p>
         </div>
@@ -113,70 +111,77 @@ export default function NewChildPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre completo</Label>
+            <form onSubmit={handleSubmit} className='space-y-6'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div className='space-y-2'>
+                  <Label htmlFor='name'>Nombre completo</Label>
                   <Input
-                    id="name"
-                    type="text"
+                    id='name'
+                    type='text'
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     required
-                    placeholder="Nombre del hijo"
+                    placeholder='Nombre del hijo'
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="age">Edad</Label>
+                <div className='space-y-2'>
+                  <Label htmlFor='age'>Edad</Label>
                   <Input
-                    id="age"
-                    type="number"
+                    id='age'
+                    type='number'
                     value={formData.age}
                     onChange={(e) => handleInputChange('age', e.target.value)}
                     required
-                    min="1"
-                    max="17"
-                    placeholder="8"
+                    min='1'
+                    max='17'
+                    placeholder='8'
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="birth_date">Fecha de nacimiento</Label>
+              <div className='space-y-2'>
+                <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
                 <Input
-                  id="birth_date"
-                  type="date"
+                  id='birth_date'
+                  type='date'
                   value={formData.birth_date}
-                  onChange={(e) => handleInputChange('birth_date', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('birth_date', e.target.value)
+                  }
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="adhd_type">Tipo de TDAH</Label>
-                <Select value={formData.adhd_type} onValueChange={(value) => handleInputChange('adhd_type', value)}>
+              <div className='space-y-2'>
+                <Label htmlFor='adhd_type'>Tipo de TDAH</Label>
+                <Select
+                  value={formData.adhd_type}
+                  onValueChange={(value) =>
+                    handleInputChange('adhd_type', value)
+                  }
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona el tipo de TDAH" />
+                    <SelectValue placeholder='Selecciona el tipo de TDAH' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INATTENTIVE">Inatento</SelectItem>
-                    <SelectItem value="HYPERACTIVE">Hiperactivo</SelectItem>
-                    <SelectItem value="COMBINED">Combinado</SelectItem>
+                    <SelectItem value='INATTENTIVE'>Inatento</SelectItem>
+                    <SelectItem value='HYPERACTIVE'>Hiperactivo</SelectItem>
+                    <SelectItem value='COMBINED'>Combinado</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant='destructive'>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
-              <div className="flex justify-end space-x-4">
-                <Link href="/children">
-                  <Button variant="outline">Cancelar</Button>
+              <div className='flex justify-end space-x-4'>
+                <Link href='/children'>
+                  <Button variant='outline'>Cancelar</Button>
                 </Link>
-                <Button type="submit" disabled={isLoading}>
+                <Button type='submit' disabled={isLoading}>
                   {isLoading ? 'Agregando...' : 'Agregar hijo'}
                 </Button>
               </div>

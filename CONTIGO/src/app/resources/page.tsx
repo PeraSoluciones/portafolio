@@ -90,46 +90,18 @@ export default function ResourcesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">CONTIGO</h1>
-              <nav className="ml-10 flex space-x-8">
-                <a href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                  Dashboard
-                </a>
-                <a href="/children" className="text-gray-600 hover:text-gray-900">
-                  Hijos
-                </a>
-                <a href="/routines" className="text-gray-600 hover:text-gray-900">
-                  Rutinas
-                </a>
-                <a href="/habits" className="text-gray-600 hover:text-gray-900">
-                  Hábitos
-                </a>
-                <a href="/resources" className="text-blue-600 font-medium">
-                  Recursos
-                </a>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Recursos educativos</h2>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">Recursos educativos</h1>
+          <p className="text-muted-foreground mt-2">
             Accede a artículos, consejos y guías sobre el manejo del TDAH en niños
           </p>
         </div>
@@ -163,10 +135,10 @@ export default function ResourcesPage() {
                     <CardTitle className="text-xl">{resource.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 mb-4 line-clamp-3">
+                    <p className="text-muted-foreground mb-4 line-clamp-3">
                       {resource.content}
                     </p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
                         <span>{formatDate(resource.created_at)}</span>
@@ -184,21 +156,21 @@ export default function ResourcesPage() {
           {['ROUTINES', 'HABITS', 'BEHAVIOR', 'EMOTIONAL', 'EDUCATIONAL'].map((category) => (
             <TabsContent key={category} value={category} className="space-y-6">
               <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
+                <h3 className="text-2xl font-bold text-foreground">
                   {getCategoryLabel(category)}
                 </h3>
-                <p className="text-gray-600 mt-2">
+                <p className="text-muted-foreground mt-2">
                   Recursos especializados en {getCategoryLabel(category).toLowerCase()}
                 </p>
               </div>
               
               {getResourcesByCategory(category).length === 0 ? (
                 <div className="text-center py-12">
-                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-4">
                     No hay recursos disponibles
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Pronto tendremos nuevos recursos sobre esta categoría.
                   </p>
                 </div>
@@ -218,10 +190,10 @@ export default function ResourcesPage() {
                         <CardTitle className="text-xl">{resource.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-gray-600 mb-4 line-clamp-3">
+                        <p className="text-muted-foreground mb-4 line-clamp-3">
                           {resource.content}
                         </p>
-                        <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <Calendar className="h-4 w-4" />
                             <span>{formatDate(resource.created_at)}</span>
