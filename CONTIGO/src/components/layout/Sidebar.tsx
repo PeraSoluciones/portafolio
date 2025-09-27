@@ -93,7 +93,7 @@ export function Sidebar() {
                 key={child.id}
                 className={`cursor-pointer transition-all duration-200 rounded-lg p-2 ${
                   selectedChild?.id === child.id
-                    ? 'bg-sidebar-primary/10'
+                    ? 'bg-primary/10'
                     : 'hover:bg-slate-200'
                 }`}
                 onClick={() => setSelectedChild(child)}
@@ -149,7 +149,7 @@ export function Sidebar() {
           variant="outline"
           size="sm"
           onClick={handleSignOut}
-          className="w-full justify-start text-sidebar-foreground border-sidebar-border hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="w-full place-content-center text-sidebar-foreground border-sidebar-border hover:bg-destructive/10 hover:text-destructive"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Cerrar sesión

@@ -132,10 +132,10 @@ export default function DashboardPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Rutinas */}
-            <Card className="transition-all duration-200 hover:shadow-lg">
+            <Card className="transition-all duration-200 hover:shadow-lg border-t-4 border-t-secondary">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <Calendar className="h-5 w-5 text-primary" />
+                  <Calendar className="h-5 w-5 text-secondary" />
                   <span>Rutinas</span>
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
@@ -179,10 +179,10 @@ export default function DashboardPage() {
             </Card>
 
             {/* Hábitos */}
-            <Card className="transition-all duration-200 hover:shadow-lg">
+            <Card className="transition-all duration-200 hover:shadow-lg border-t-4 border-t-chart-5">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <Target className="h-5 w-5 text-primary" />
+                  <Target className="h-5 w-5 text-chart-5" />
                   <span>Hábitos</span>
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
@@ -220,10 +220,10 @@ export default function DashboardPage() {
             </Card>
 
             {/* Comportamientos */}
-            <Card className="transition-all duration-200 hover:shadow-lg">
+            <Card className="transition-all duration-200 hover:shadow-lg border-t-4 border-t-accent">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <Star className="h-5 w-5 text-primary" />
+                  <Star className="h-5 w-5 text-accent" />
                   <span>Comportamientos</span>
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
@@ -263,10 +263,10 @@ export default function DashboardPage() {
             </Card>
 
             {/* Recursos Educativos */}
-            <Card className="transition-all duration-200 hover:shadow-lg">
+            <Card className="transition-all duration-200 hover:shadow-lg border-t-4 border-t-destructive">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 text-foreground">
-                  <BookOpen className="h-5 w-5 text-primary" />
+                  <BookOpen className="h-5 w-5 text-destructive" />
                   <span>Recursos</span>
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">

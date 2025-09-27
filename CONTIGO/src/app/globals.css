@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -45,104 +45,101 @@
 
 :root {
   --radius: 0.625rem;
-  
+
   /* Colores principales - Tema claro */
   --primary: hsl(204 78% 43%); /* steel-blue */
   --primary-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   --secondary: hsl(271 31% 44%); /* ultra-violet */
   --secondary-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   --accent: hsl(44 100% 61%); /* sunglow */
   --accent-foreground: hsl(0 0% 10%); /* Negro para contraste */
-  
+
   --destructive: hsl(358 100% 68%); /* bittersweet */
   --destructive-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   --success: hsl(92 68% 47%); /* yellow-green */
   --success-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   /* Colores de fondo y texto */
   --background: hsl(0 0% 100%); /* Blanco puro */
   --foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
-  
+
   /* Componentes */
   --card: hsl(0 0% 100%); /* Blanco puro */
   --card-foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
-  
+
   --popover: hsl(0 0% 100%); /* Blanco puro */
   --popover-foreground: hsl(222.2 84% 4.9%); /* Casi negro para texto */
-  
+
   --muted: hsl(210 40% 98%); /* Gris muy claro */
   --muted-foreground: hsl(215.4 16.3% 46.9%); /* Gris medio para texto */
-  
+
   --border: hsl(214.3 31.8% 91.4%); /* Gris claro para bordes */
   --input: hsl(214.3 31.8% 91.4%); /* Gris claro para inputs */
   --ring: hsl(204 78% 43%); /* steel-blue para focus ring */
-  
+
   /* Colores para gráficos */
   --chart-1: hsl(204 78% 43%); /* steel-blue */
   --chart-2: hsl(271 31% 44%); /* ultra-violet */
   --chart-3: hsl(44 100% 61%); /* sunglow */
   --chart-4: hsl(358 100% 68%); /* bittersweet */
   --chart-5: hsl(92 68% 47%); /* yellow-green */
-  
+
   /* Sidebar */
   --sidebar: hsl(0 0% 98%); /* Fondo muy claro */
   --sidebar-foreground: hsl(222.2 84% 4.9%); /* Texto oscuro */
-  --sidebar-primary: hsl(201 78% 43%); /* steel-blue */
+  --sidebar-primary: hsl(204 78% 43%); /* steel-blue */
   --sidebar-primary-foreground: hsl(0 0% 98%); /* Blanco */
   --sidebar-accent: hsl(210 40% 98%); /* Fondo muy claro */
   --sidebar-accent-foreground: hsl(222.2 84% 4.9%); /* Texto oscuro */
   --sidebar-border: hsl(214.3 31.8% 91.4%); /* Borde gris claro */
   --sidebar-ring: hsl(204 78% 43%); /* steel-blue */
-
-  /* Sidebar - Links */
-  --steel-blue: hsl(201 78% 43%); /* steel-blue */
 }
 
 .dark {
   /* Colores principales - Tema oscuro */
   --primary: hsl(204 78% 53%); /* steel-blue más claro */
   --primary-foreground: hsl(0 0% 10%); /* Negro para contraste */
-  
+
   --secondary: hsl(271 31% 54%); /* ultra-violet más claro */
   --secondary-foreground: hsl(0 0% 10%); /* Negro para contraste */
-  
+
   --accent: hsl(44 100% 51%); /* sunglow más oscuro */
   --accent-foreground: hsl(0 0% 10%); /* Negro para contraste */
-  
+
   --destructive: hsl(358 100% 58%); /* bittersweet más oscuro */
   --destructive-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   --success: hsl(92 68% 37%); /* yellow-green más oscuro */
   --success-foreground: hsl(0 0% 98%); /* Blanco para contraste */
-  
+
   /* Colores de fondo y texto */
   --background: hsl(222.2 84% 4.9%); /* Casi negro */
   --foreground: hsl(210 40% 98%); /* Blanco para texto */
-  
+
   /* Componentes */
   --card: hsl(222.2 84% 4.9%); /* Casi negro */
   --card-foreground: hsl(210 40% 98%); /* Blanco para texto */
-  
+
   --popover: hsl(222.2 84% 4.9%); /* Casi negro */
   --popover-foreground: hsl(210 40% 98%); /* Blanco para texto */
-  
+
   --muted: hsl(217.2 32.6% 17.5%); /* Gris oscuro */
   --muted-foreground: hsl(215 20.2% 65.1%); /* Gris claro para texto */
-  
+
   --border: hsl(217.2 32.6% 17.5%); /* Gris oscuro para bordes */
   --input: hsl(217.2 32.6% 17.5%); /* Gris oscuro para inputs */
   --ring: hsl(204 78% 53%); /* steel-blue más claro para focus ring */
-  
+
   /* Colores para gráficos */
   --chart-1: hsl(204 78% 53%); /* steel-blue más claro */
   --chart-2: hsl(271 31% 54%); /* ultra-violet más claro */
   --chart-3: hsl(44 100% 51%); /* sunglow más oscuro */
   --chart-4: hsl(358 100% 58%); /* bittersweet más oscuro */
   --chart-5: hsl(92 68% 37%); /* yellow-green más oscuro */
-  
+
   /* Sidebar */
   --sidebar: hsl(222.2 84% 4.9%); /* Fondo oscuro */
   --sidebar-foreground: hsl(210 40% 98%); /* Texto claro */

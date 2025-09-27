@@ -1,0 +1,702 @@
+import React, { useState, useEffect } from 'react';
+import type { User, Child, Routine, Habit, Behavior } from './types';
+import Sidebar from './components/Sidebar';
+import DashboardContent from './components/DashboardContent';
+
+const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [behaviors, setBehaviors] = useState<Behavior[]>([]);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  // Simulate user data fetching
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      const mockUser: User = {
+        id: 'user-123',
+        email: 'padre.familia@email.com',
+        full_name: 'Alex Rodriguez',
+        avatar_url: 'https://picsum.photos/id/237/100/100',
+      };
+      const mockChildren: Child[] = [
+        {
+          id: 'child-1',
+          name: 'Sofía',
+          age: 8,
+          adhd_type: 'COMBINED',
+          avatar_url: 'https://picsum.photos/id/1027/100/100',
+          parent_id: 'user-123',
+        },
+        {
+          id: 'child-2',
+          name: 'Mateo',
+          age: 6,
+          adhd_type: 'INATTENTIVE',
+          avatar_url: 'https://picsum.photos/id/1005/100/100',
+          parent_id: 'user-123',
+        },
+      ];
+
+      setUser(mockUser);
+      setChildren(mockChildren);
+      setSelectedChild(mockChildren[0] || null);
+      setLoading(false);
+    }, 1500);
+  }, []);
+
+  // Simulate fetching data for the selected child
+  useEffect(() => {
+    if (!selectedChild) {
+      setRoutines([]);
+      setHabits([]);
+      setBehaviors([]);
+      return;
+    }
+
+    const fetchChildData = () => {
+      // Simulate API call delay
+      setTimeout(() => {
+        const mockRoutines: Routine[] = [
+          { id: 'r1', title: 'Rutina de Mañana', time: '07:30 AM', days: ['L', 'M', 'X', 'J', 'V'], child_id: selectedChild.id, is_active: true },
+          { id: 'r2', title: 'Hora de Tareas', time: '04:00 PM', days: ['L', 'M', 'X', 'J'], child_id: selectedChild.id, is_active: true },
+        ];
+        const mockHabits: Habit[] = [
+          { id: 'h1', title: 'Leer 20 minutos', category: 'Educación', target_frequency: 5, unit: 'veces/semana', child_id: selectedChild.id },
+          { id: 'h2', title: 'Beber 5 vasos de agua', category: 'Salud', target_frequency: 1, unit: 'diario', child_id: selectedChild.id },
+        ];
+        const mockBehaviors: Behavior[] = [
+          { id: 'b1', title: 'Terminar la tarea a tiempo', type: 'POSITIVE', points: 10, child_id: selectedChild.id },
+          { id: 'b2', title: 'Ayudar a poner la mesa', type: 'POSITIVE', points: 5, child_id: selectedChild.id },
+        ];
+
+        setRoutines(mockRoutines);
+        setHabits(mockHabits);
+        setBehaviors(mockBehaviors);
+      }, 500);
+    };
+
+    fetchChildData();
+  }, [selectedChild]);
+
+  const handleSignOut = () => {
+    console.log('Signing out...');
+    setUser(null);
+    setChildren([]);
+    setSelectedChild(null);
+    alert('Has cerrado sesión.');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-steel-blue"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans">
+      <Sidebar
+        user={user}
+        handleSignOut={handleSignOut}
+        children={children}
+        selectedChild={selectedChild}
+        setSelectedChild={setSelectedChild}
+        isOpen={isSidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
+      <div className="lg:pl-64">
+        <main className="p-6 lg:p-10">
+          <DashboardContent
+            user={user}
+            selectedChild={selectedChild}
+            routines={routines}
+            habits={habits}
+            behaviors={behaviors}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;
+
+
+import React from 'react';
+import type { Child } from '../types';
+import { Plus } from 'lucide-react';
+
+interface ChildSelectorProps {
+  children: Child[];
+  selectedChild: Child | null;
+  setSelectedChild: (child: Child) => void;
+}
+
+const getADHDTypeLabel = (type: string) => {
+  switch (type) {
+    case 'INATTENTIVE': return 'Inatento';
+    case 'HYPERACTIVE': return 'Hiperactivo';
+    case 'COMBINED': return 'Combinado';
+    default: return type;
+  }
+};
+
+const ChildCard: React.FC<{ child: Child; isSelected: boolean; onClick: () => void }> = ({ child, isSelected, onClick }) => (
+  <div
+    onClick={onClick}
+    className={`p-4 bg-white rounded-xl cursor-pointer transition-all duration-200 border-2 ${
+      isSelected ? 'border-steel-blue shadow-lg scale-105' : 'border-transparent hover:shadow-md'
+    }`}
+  >
+    <div className="flex items-center space-x-4">
+      <img
+        src={child.avatar_url}
+        alt={child.name}
+        className="h-14 w-14 rounded-full object-cover"
+      />
+      <div>
+        <h3 className="font-bold text-slate-800">{child.name}</h3>
+        <p className="text-sm text-slate-500">{child.age} años</p>
+        <span className="mt-1 inline-block text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+          {getADHDTypeLabel(child.adhd_type)}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const AddChildCard: React.FC = () => (
+  <div className="p-4 bg-white rounded-xl cursor-pointer transition-all duration-200 border-2 border-dashed border-slate-300 hover:border-steel-blue hover:text-steel-blue hover:shadow-md text-slate-500">
+    <div className="flex items-center space-x-4 h-full">
+      <div className="h-14 w-14 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+        <Plus size={24} />
+      </div>
+      <div>
+        <h3 className="font-bold">Agregar hijo</h3>
+        <p className="text-sm">Añadir un nuevo perfil</p>
+      </div>
+    </div>
+  </div>
+);
+
+const ChildSelector: React.FC<ChildSelectorProps> = ({ children, selectedChild, setSelectedChild }) => {
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-slate-800 mb-4">Selecciona un hijo</h2>
+      <div className="flex flex-wrap gap-4">
+        {children.map((child) => (
+          <ChildCard
+            key={child.id}
+            child={child}
+            isSelected={selectedChild?.id === child.id}
+            onClick={() => setSelectedChild(child)}
+          />
+        ))}
+        <AddChildCard />
+      </div>
+    </div>
+  );
+};
+
+export default ChildSelector;
+
+
+import React from 'react';
+
+interface DashboardCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  accentColor: 'bittersweet' | 'sunglow' | 'yellow-green' | 'steel-blue' | 'ultra-violet';
+  children: React.ReactNode;
+}
+
+const colorMap = {
+  'bittersweet': 'text-bittersweet border-bittersweet',
+  'sunglow': 'text-sunglow border-sunglow',
+  'yellow-green': 'text-yellow-green border-yellow-green',
+  'steel-blue': 'text-steel-blue border-steel-blue',
+  'ultra-violet': 'text-ultra-violet border-ultra-violet',
+};
+
+const DashboardCard: React.FC<DashboardCardProps> = ({ title, description, icon, accentColor, children }) => {
+  const accentClasses = colorMap[accentColor];
+
+  return (
+    <div className={`bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col border-t-4 ${accentClasses}`}>
+      <div className="p-5">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className={accentClasses}>{icon}</div>
+          <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+        </div>
+        <p className="text-sm text-slate-500">{description}</p>
+      </div>
+      <div className="p-5 pt-0 flex-grow flex flex-col">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+export default DashboardCard;
+
+import React from 'react';
+import type { User, Child, Routine, Habit, Behavior } from '../types';
+import { Calendar, Target, Star, BookOpen, PlusCircle, Menu } from 'lucide-react';
+import DashboardCard from './DashboardCard';
+import EmptyCardContent from './EmptyCardContent';
+import Button from './ui/Button';
+
+interface DashboardContentProps {
+  user: User | null;
+  selectedChild: Child | null;
+  routines: Routine[];
+  habits: Habit[];
+  behaviors: Behavior[];
+  onMenuClick: () => void;
+}
+
+const DashboardContent: React.FC<DashboardContentProps> = ({
+  user,
+  selectedChild,
+  routines,
+  habits,
+  behaviors,
+  onMenuClick,
+}) => {
+  if (!selectedChild) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center bg-white rounded-xl p-12">
+        <h2 className="text-3xl font-bold text-slate-800 mb-4">Bienvenido a CONTIGO</h2>
+        <p className="text-slate-600 max-w-md mb-8">
+          Para empezar, agrega a tus hijos y comienza a crear rutinas y hábitos personalizados para apoyar su desarrollo.
+        </p>
+        <Button size="lg">
+          <PlusCircle className="mr-2 h-5 w-5" />
+          Agregar primer hijo
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Mobile Header */}
+      <header className="lg:hidden flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-steel-blue tracking-wider">CONTIGO</h1>
+        <Button variant="ghost" size="sm" onClick={onMenuClick} aria-label="Abrir menú">
+          <Menu size={24} className="text-slate-700" />
+        </Button>
+      </header>
+
+      <div className="mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800">
+          Hola, {user?.full_name?.split(' ')[0]}
+        </h2>
+        <p className="text-slate-500 mt-1">
+          Aquí tienes un resumen de las actividades de {selectedChild.name}.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <DashboardCard
+          title="Rutinas"
+          description={`Rutinas activas para ${selectedChild.name}`}
+          icon={<Calendar size={24} />}
+          accentColor="ultra-violet"
+        >
+          {routines.length > 0 ? (
+            <div className="space-y-3">
+              {routines.slice(0, 2).map((routine) => (
+                <div key={routine.id} className="flex justify-between items-center text-sm">
+                  <p className="font-medium text-slate-700">{routine.title}</p>
+                  <p className="text-slate-500">{routine.time}</p>
+                </div>
+              ))}
+              <Button variant="outline" className="w-full mt-4 !text-sm">Ver todas</Button>
+            </div>
+          ) : (
+            <EmptyCardContent text="No hay rutinas" buttonText="Crear Rutina" />
+          )}
+        </DashboardCard>
+
+        <DashboardCard
+          title="Hábitos"
+          description={`Hábitos de ${selectedChild.name}`}
+          icon={<Target size={24} />}
+          accentColor="yellow-green"
+        >
+          {habits.length > 0 ? (
+            <div className="space-y-3">
+              {habits.slice(0, 2).map((habit) => (
+                <div key={habit.id} className="flex justify-between items-center text-sm">
+                  <p className="font-medium text-slate-700">{habit.title}</p>
+                  <span className="text-xs font-semibold bg-yellow-green/10 text-yellow-green px-2 py-1 rounded-full">{habit.category}</span>
+                </div>
+              ))}
+              <Button variant="outline" className="w-full mt-4 !text-sm">Ver todos</Button>
+            </div>
+          ) : (
+            <EmptyCardContent text="No hay hábitos" buttonText="Crear Hábito" />
+          )}
+        </DashboardCard>
+
+        <DashboardCard
+          title="Comportamientos"
+          description="Seguimiento de conductas"
+          icon={<Star size={24} />}
+          accentColor="sunglow"
+        >
+          {behaviors.length > 0 ? (
+            <div className="space-y-3">
+              {behaviors.slice(0, 2).map((behavior) => (
+                <div key={behavior.id} className="flex justify-between items-center text-sm">
+                  <p className="font-medium text-slate-700">{behavior.title}</p>
+                  <span className="font-bold text-green-600">+{behavior.points} pts</span>
+                </div>
+              ))}
+              <Button variant="outline" className="w-full mt-4 !text-sm">Ver todos</Button>
+            </div>
+          ) : (
+            <EmptyCardContent text="No hay conductas" buttonText="Registrar" />
+          )}
+        </DashboardCard>
+        
+        <DashboardCard
+          title="Recursos"
+          description="Consejos y guías para padres"
+          icon={<BookOpen size={24} />}
+          accentColor="bittersweet"
+        >
+          <div className="space-y-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900 text-sm">Rutinas Efectivas</h4>
+                <p className="text-blue-700 text-xs mt-1">
+                  Establece horarios consistentes para mejorar la organización.
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <h4 className="font-medium text-green-900 text-sm">Sueño y Descanso</h4>
+                <p className="text-green-700 text-xs mt-1">
+                  La importancia del descanso para niños con TDAH.
+                </p>
+              </div>
+              <Button variant="outline" className="w-full !text-sm">Ver más recursos</Button>
+            </div>
+        </DashboardCard>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardContent;
+
+
+import React from 'react';
+import Button from './ui/Button';
+import { Plus } from 'lucide-react';
+
+interface EmptyCardContentProps {
+  text: string;
+  buttonText: string;
+}
+
+const EmptyCardContent: React.FC<EmptyCardContentProps> = ({ text, buttonText }) => (
+  <div className="text-center flex-grow flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-lg">
+    <p className="text-slate-500 text-sm mb-4">{text}</p>
+    <Button size="sm" variant="outline">
+      <Plus size={14} className="mr-1.5" />
+      {buttonText}
+    </Button>
+  </div>
+);
+
+export default EmptyCardContent;
+
+import React, { useState } from 'react';
+import { LayoutDashboard, Calendar, Target, Star, Gift, LogOut, Plus, X } from 'lucide-react';
+import type { User, Child } from '../types';
+
+interface SidebarProps {
+  user: User | null;
+  handleSignOut: () => void;
+  children: Child[];
+  selectedChild: Child | null;
+  setSelectedChild: (child: Child) => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+}
+
+const NavItem: React.FC<{ icon: React.ReactNode; label: string; active?: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
+  <li>
+    <a
+      href="#"
+      onClick={(e) => { e.preventDefault(); onClick(); }}
+      className={`flex items-center p-3 my-1 rounded-lg transition-colors ${
+        active ? 'bg-steel-blue text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'
+      }`}
+    >
+      {icon}
+      <span className="ml-3 font-medium">{label}</span>
+    </a>
+  </li>
+);
+
+const ChildItem: React.FC<{ child: Child; isSelected: boolean; onClick: () => void }> = ({ child, isSelected, onClick }) => (
+    <div
+        onClick={onClick}
+        className={`flex items-center p-2.5 my-1 rounded-lg cursor-pointer transition-colors ${
+            isSelected ? 'bg-steel-blue/10 text-steel-blue' : 'hover:bg-slate-200'
+        }`}
+    >
+        <img
+            src={child.avatar_url}
+            alt={child.name}
+            className="h-8 w-8 rounded-full object-cover"
+        />
+        <span className="ml-3 font-medium text-sm text-slate-700">{child.name}</span>
+    </div>
+);
+
+const Sidebar: React.FC<SidebarProps> = ({ user, handleSignOut, children, selectedChild, setSelectedChild, isOpen, setIsOpen }) => {
+  const [activeLink, setActiveLink] = useState('Dashboard');
+
+  const navItems = [
+    { name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: 'Rutinas', icon: <Calendar size={20} /> },
+    { name: 'Hábitos', icon: <Target size={20} /> },
+    { name: 'Comportamientos', icon: <Star size={20} /> },
+    { name: 'Recompensas', icon: <Gift size={20} /> },
+  ];
+
+  return (
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden" 
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        ></div>
+      )}
+      <aside 
+        className={`fixed top-0 left-0 h-full z-40 w-64 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0`}
+      >
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-steel-blue tracking-wider">CONTIGO</h1>
+          <button 
+            onClick={() => setIsOpen(false)} 
+            className="lg:hidden text-slate-500 hover:text-slate-800"
+            aria-label="Cerrar menú"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-4 py-4">
+            <ul>
+              {navItems.map(item => (
+                <NavItem
+                  key={item.name}
+                  icon={item.icon}
+                  label={item.name}
+                  active={activeLink === item.name}
+                  onClick={() => setActiveLink(item.name)}
+                />
+              ))}
+            </ul>
+          </nav>
+
+          <div className="px-4 mt-4">
+            <h3 className="px-2 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Mis Hijos</h3>
+            {children.map(child => (
+              <ChildItem 
+                key={child.id}
+                child={child}
+                isSelected={selectedChild?.id === child.id}
+                onClick={() => setSelectedChild(child)}
+              />
+            ))}
+            <button className="w-full flex items-center p-2.5 mt-2 rounded-lg text-slate-600 hover:bg-slate-200 transition-colors">
+              <Plus size={20} className="text-slate-500" />
+              <span className="ml-3 font-medium text-sm">Agregar Hijo</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-4 border-t border-slate-200">
+          <div className="flex items-center mb-4">
+            <img
+              src={user?.avatar_url}
+              alt={user?.full_name}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+            <div className="ml-3">
+              <p className="font-semibold text-sm text-slate-800">{user?.full_name}</p>
+              <p className="text-xs text-slate-500">{user?.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center p-2 rounded-lg text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={16} />
+            <span className="ml-2 text-sm font-medium">Cerrar Sesión</span>
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+export default Sidebar;
+
+
+import React from 'react';
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'lg';
+}
+
+const Button: React.FC<ButtonProps> = ({ className, variant = 'default', size = 'default', ...props }) => {
+  const baseClasses = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-steel-blue disabled:opacity-50 disabled:pointer-events-none';
+  
+  const variantClasses = {
+    default: 'bg-steel-blue text-white hover:bg-steel-blue/90 shadow-sm',
+    outline: 'border border-slate-300 bg-transparent hover:bg-slate-100 text-slate-700',
+    ghost: 'hover:bg-slate-100',
+  }[variant];
+
+  const sizeClasses = {
+    default: 'h-10 py-2 px-4',
+    sm: 'h-9 px-3 rounded-md',
+    lg: 'h-11 px-8 rounded-md',
+  }[size];
+
+  return <button className={`${baseClasses} ${variantClasses} ${sizeClasses} ${className}`} {...props} />;
+};
+
+export default Button;
+
+----index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONTIGO Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'bittersweet': '#ff595e',
+            'sunglow': '#ffca3a',
+            'yellow-green': '#8ac926',
+            'steel-blue': '#1982c4',
+            'ultra-violet': '#6a4c93',
+          },
+        },
+      },
+    }
+  </script>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.544.0"
+  }
+}
+</script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
+
+
+---index.tsx
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error("Could not find root element to mount to");
+}
+
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+
+---metadata.json
+
+{
+  "name": "CONTIGO Dashboard",
+  "description": "A modern, clean, and functional dashboard to manage routines, habits, and behaviors for children, with a focus on supporting parents of children with ADHD.",
+  "requestFramePermissions": []
+}
+
+---- types.ts
+
+export interface User {
+  id: string;
+  email: string;
+  full_name: string;
+  avatar_url?: string;
+}
+
+export interface Child {
+  id: string;
+  parent_id: string;
+  name: string;
+  age: number;
+  adhd_type: 'INATTENTIVE' | 'HYPERACTIVE' | 'COMBINED';
+  avatar_url?: string;
+}
+
+export interface Routine {
+  id: string;
+  child_id: string;
+  title: string;
+  time: string;
+  days: string[];
+  is_active: boolean;
+}
+
+export interface Habit {
+  id: string;
+  child_id: string;
+  title: string;
+  category: string;
+  target_frequency: number;
+  unit: string;
+}
+
+export interface Behavior {
+  id: string;
+  child_id: string;
+  title: string;
+  type: 'POSITIVE' | 'NEGATIVE';
+  points: number;
+}
