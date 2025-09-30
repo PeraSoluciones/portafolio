@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,16 +50,16 @@ export default function ResourcesPage() {
   };
 
   const getResourcesByCategory = (category: string) => {
-    return resources.filter(resource => resource.category === category);
+    return resources.filter((resource) => resource.category === category);
   };
 
   const getCategoryLabel = (category: string) => {
     const labels: { [key: string]: string } = {
-      'ROUTINES': 'Rutinas',
-      'HABITS': 'Hábitos',
-      'BEHAVIOR': 'Comportamiento',
-      'EMOTIONAL': 'Emocional',
-      'EDUCATIONAL': 'Educativo',
+      ROUTINES: 'Rutinas',
+      HABITS: 'Hábitos',
+      BEHAVIOR: 'Comportamiento',
+      EMOTIONAL: 'Emocional',
+      EDUCATIONAL: 'Educativo',
     };
     return labels[category] || category;
   };
@@ -61,21 +67,21 @@ export default function ResourcesPage() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'ARTICLE':
-        return <BookOpen className="h-4 w-4" />;
+        return <BookOpen className='h-4 w-4' />;
       case 'VIDEO':
-        return <Video className="h-4 w-4" />;
+        return <Video className='h-4 w-4' />;
       case 'TIP':
-        return <Lightbulb className="h-4 w-4" />;
+        return <Lightbulb className='h-4 w-4' />;
       default:
-        return <BookOpen className="h-4 w-4" />;
+        return <BookOpen className='h-4 w-4' />;
     }
   };
 
   const getTypeLabel = (type: string) => {
     const labels: { [key: string]: string } = {
-      'ARTICLE': 'Artículo',
-      'VIDEO': 'Video',
-      'TIP': 'Consejo',
+      ARTICLE: 'Artículo',
+      VIDEO: 'Video',
+      TIP: 'Consejo',
     };
     return labels[type] || type;
   };
@@ -90,115 +96,126 @@ export default function ResourcesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
+        <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600'></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Recursos educativos</h1>
-          <p className="text-muted-foreground mt-2">
-            Accede a artículos, consejos y guías sobre el manejo del TDAH en niños
-          </p>
-        </div>
+    <>
+      <div className='mb-8'>
+        <h1 className='text-3xl font-bold text-foreground'>
+          Recursos educativos
+        </h1>
+        <p className='text-muted-foreground mt-2'>
+          Accede a artículos, consejos y guías sobre el manejo del TDAH en niños
+        </p>
+      </div>
 
-        <Tabs defaultValue="all" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="all">Todos</TabsTrigger>
-            <TabsTrigger value="ROUTINES">Rutinas</TabsTrigger>
-            <TabsTrigger value="HABITS">Hábitos</TabsTrigger>
-            <TabsTrigger value="BEHAVIOR">Comportamiento</TabsTrigger>
-            <TabsTrigger value="EMOTIONAL">Emocional</TabsTrigger>
-            <TabsTrigger value="EDUCATIONAL">Educativo</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue='all' className='space-y-6'>
+        <TabsList className='flex overflow-x-auto whitespace-nowrap scrollbar-hide'>
+          <TabsTrigger value='all'>Todos</TabsTrigger>
+          <TabsTrigger value='ROUTINES'>Rutinas</TabsTrigger>
+          <TabsTrigger value='HABITS'>Hábitos</TabsTrigger>
+          <TabsTrigger value='BEHAVIOR'>Comportamiento</TabsTrigger>
+          <TabsTrigger value='EMOTIONAL'>Emocional</TabsTrigger>
+          <TabsTrigger value='EDUCATIONAL'>Educativo</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="all" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resources.map((resource) => (
-                <Card key={resource.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {getTypeIcon(resource.type)}
-                        <Badge variant="outline">
-                          {getTypeLabel(resource.type)}
-                        </Badge>
-                      </div>
-                      <Badge variant="secondary">
-                        {getCategoryLabel(resource.category)}
+        <TabsContent value='all' className='space-y-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {resources.map((resource) => (
+              <Card
+                key={resource.id}
+                className='hover:shadow-lg transition-shadow'
+              >
+                <CardHeader>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center space-x-2'>
+                      {getTypeIcon(resource.type)}
+                      <Badge variant='outline'>
+                        {getTypeLabel(resource.type)}
                       </Badge>
                     </div>
-                    <CardTitle className="text-xl">{resource.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4 line-clamp-3">
-                      {resource.content}
-                    </p>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(resource.created_at)}</span>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Leer más
-                      </Button>
+                    <Badge variant='secondary'>
+                      {getCategoryLabel(resource.category)}
+                    </Badge>
+                  </div>
+                  <CardTitle className='text-xl'>{resource.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className='text-muted-foreground mb-4 line-clamp-3'>
+                    {resource.content}
+                  </p>
+                  <div className='flex items-center justify-between text-sm text-muted-foreground'>
+                    <div className='flex items-center space-x-1'>
+                      <Calendar className='h-4 w-4' />
+                      <span>{formatDate(resource.created_at)}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+                    <Button variant='outline' size='sm'>
+                      Leer más
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
 
-          {['ROUTINES', 'HABITS', 'BEHAVIOR', 'EMOTIONAL', 'EDUCATIONAL'].map((category) => (
-            <TabsContent key={category} value={category} className="space-y-6">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-foreground">
+        {['ROUTINES', 'HABITS', 'BEHAVIOR', 'EMOTIONAL', 'EDUCATIONAL'].map(
+          (category) => (
+            <TabsContent key={category} value={category} className='space-y-6'>
+              <div className='mb-6'>
+                <h3 className='text-2xl font-bold text-foreground'>
                   {getCategoryLabel(category)}
                 </h3>
-                <p className="text-muted-foreground mt-2">
-                  Recursos especializados en {getCategoryLabel(category).toLowerCase()}
+                <p className='text-muted-foreground mt-2'>
+                  Recursos especializados en{' '}
+                  {getCategoryLabel(category).toLowerCase()}
                 </p>
               </div>
-              
+
               {getResourcesByCategory(category).length === 0 ? (
-                <div className="text-center py-12">
-                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-foreground mb-4">
+                <div className='text-center py-12'>
+                  <BookOpen className='h-12 w-12 text-muted-foreground mx-auto mb-4' />
+                  <h3 className='text-xl font-bold text-foreground mb-4'>
                     No hay recursos disponibles
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className='text-muted-foreground'>
                     Pronto tendremos nuevos recursos sobre esta categoría.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                   {getResourcesByCategory(category).map((resource) => (
-                    <Card key={resource.id} className="hover:shadow-lg transition-shadow">
+                    <Card
+                      key={resource.id}
+                      className='hover:shadow-lg transition-shadow'
+                    >
                       <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center space-x-2'>
                             {getTypeIcon(resource.type)}
-                            <Badge variant="outline">
+                            <Badge variant='outline'>
                               {getTypeLabel(resource.type)}
                             </Badge>
                           </div>
                         </div>
-                        <CardTitle className="text-xl">{resource.title}</CardTitle>
+                        <CardTitle className='text-xl'>
+                          {resource.title}
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-muted-foreground mb-4 line-clamp-3">
+                        <p className='text-muted-foreground mb-4 line-clamp-3'>
                           {resource.content}
                         </p>
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-4 w-4" />
+                        <div className='flex items-center justify-between text-sm text-muted-foreground'>
+                          <div className='flex items-center space-x-1'>
+                            <Calendar className='h-4 w-4' />
                             <span>{formatDate(resource.created_at)}</span>
                           </div>
-                          <Button variant="outline" size="sm">
+                          <Button variant='outline' size='sm'>
                             Leer más
                           </Button>
                         </div>
@@ -208,9 +225,9 @@ export default function ResourcesPage() {
                 </div>
               )}
             </TabsContent>
-          ))}
-        </Tabs>
-      </div>
-    </div>
+          )
+        )}
+      </Tabs>
+    </>
   );
 }

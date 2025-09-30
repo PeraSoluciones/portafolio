@@ -85,110 +85,104 @@ export default function NewChildPage() {
   };
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='mb-8'>
-          <Link
-            href='/children'
-            className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
-          >
-            <ArrowLeft className='h-4 w-4 mr-2' />
-            Volver a hijos
-          </Link>
-          <h2 className='text-3xl font-bold text-gray-900'>
-            Agregar nuevo hijo
-          </h2>
-          <p className='text-gray-600 mt-2'>
-            Ingresa la información de tu hijo para crear su perfil
-          </p>
-        </div>
+    <>
+      <div className='mb-8'>
+        <Link
+          href='/children'
+          className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
+        >
+          <ArrowLeft className='h-4 w-4 mr-2' />
+          Volver a hijos
+        </Link>
+        <h2 className='text-3xl font-bold text-gray-900'>Agregar nuevo hijo</h2>
+        <p className='text-gray-600 mt-2'>
+          Ingresa la información de tu hijo para crear su perfil
+        </p>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Información personal</CardTitle>
-            <CardDescription>
-              Los datos ayudarán a personalizar las recomendaciones y rutinas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className='space-y-6'>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='space-y-2'>
-                  <Label htmlFor='name'>Nombre completo</Label>
-                  <Input
-                    id='name'
-                    type='text'
-                    value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    required
-                    placeholder='Nombre del hijo'
-                  />
-                </div>
-                <div className='space-y-2'>
-                  <Label htmlFor='age'>Edad</Label>
-                  <Input
-                    id='age'
-                    type='number'
-                    value={formData.age}
-                    onChange={(e) => handleInputChange('age', e.target.value)}
-                    required
-                    min='1'
-                    max='17'
-                    placeholder='8'
-                  />
-                </div>
-              </div>
-
+      <Card>
+        <CardHeader>
+          <CardTitle>Información personal</CardTitle>
+          <CardDescription>
+            Los datos ayudarán a personalizar las recomendaciones y rutinas
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div className='space-y-2'>
-                <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
+                <Label htmlFor='name'>Nombre completo</Label>
                 <Input
-                  id='birth_date'
-                  type='date'
-                  value={formData.birth_date}
-                  onChange={(e) =>
-                    handleInputChange('birth_date', e.target.value)
-                  }
+                  id='name'
+                  type='text'
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
                   required
+                  placeholder='Nombre del hijo'
                 />
               </div>
-
               <div className='space-y-2'>
-                <Label htmlFor='adhd_type'>Tipo de TDAH</Label>
-                <Select
-                  value={formData.adhd_type}
-                  onValueChange={(value) =>
-                    handleInputChange('adhd_type', value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Selecciona el tipo de TDAH' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='INATTENTIVE'>Inatento</SelectItem>
-                    <SelectItem value='HYPERACTIVE'>Hiperactivo</SelectItem>
-                    <SelectItem value='COMBINED'>Combinado</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor='age'>Edad</Label>
+                <Input
+                  id='age'
+                  type='number'
+                  value={formData.age}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
+                  required
+                  min='1'
+                  max='17'
+                  placeholder='8'
+                />
               </div>
+            </div>
 
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            <div className='space-y-2'>
+              <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
+              <Input
+                id='birth_date'
+                type='date'
+                value={formData.birth_date}
+                onChange={(e) =>
+                  handleInputChange('birth_date', e.target.value)
+                }
+                required
+              />
+            </div>
 
-              <div className='flex justify-end space-x-4'>
-                <Link href='/children'>
-                  <Button variant='outline'>Cancelar</Button>
-                </Link>
-                <Button type='submit' disabled={isLoading}>
-                  {isLoading ? 'Agregando...' : 'Agregar hijo'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <div className='space-y-2'>
+              <Label htmlFor='adhd_type'>Tipo de TDAH</Label>
+              <Select
+                value={formData.adhd_type}
+                onValueChange={(value) => handleInputChange('adhd_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Selecciona el tipo de TDAH' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='INATTENTIVE'>Inatento</SelectItem>
+                  <SelectItem value='HYPERACTIVE'>Hiperactivo</SelectItem>
+                  <SelectItem value='COMBINED'>Combinado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {error && (
+              <Alert variant='destructive'>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className='flex justify-end space-x-4'>
+              <Link href='/children'>
+                <Button variant='outline'>Cancelar</Button>
+              </Link>
+              <Button type='submit' disabled={isLoading}>
+                {isLoading ? 'Agregando...' : 'Agregar hijo'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }

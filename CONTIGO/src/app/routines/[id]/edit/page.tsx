@@ -214,7 +214,7 @@ export default function EditRoutinePage() {
 
   if (error && !formData.title) {
     return (
-      <div className='min-h-screen bg-gray-50'>
+      <div className='h-full bg-gray-50'>
         <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
           <Card>
             <CardContent className='p-6'>
@@ -233,225 +233,137 @@ export default function EditRoutinePage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
-      <header className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center h-16'>
-            <div className='flex items-center'>
-              <h1 className='text-2xl font-bold text-gray-900'>CONTIGO</h1>
-              <nav className='ml-10 flex space-x-8'>
-                <Link
-                  href='/dashboard'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href='/children'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Hijos
-                </Link>
-                <Link href='/routines' className='text-blue-600 font-medium'>
-                  Rutinas
-                </Link>
-                <Link
-                  href='/habits'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Hábitos
-                </Link>
-                <Link
-                  href='/behaviors'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Comportamientos
-                </Link>
-                <Link
-                  href='/rewards'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Recompensas
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
+    <>
+      <div className='mb-8'>
+        <Link
+          href='/routines'
+          className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
+        >
+          <ArrowLeft className='h-4 w-4 mr-2' />
+          Volver a rutinas
+        </Link>
+        <h2 className='text-3xl font-bold text-gray-900'>Editar rutina</h2>
+        <p className='text-gray-600 mt-2'>
+          Modifica los detalles de la rutina diaria
+        </p>
+      </div>
 
-      <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='mb-8'>
-          <Link
-            href='/routines'
-            className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
-          >
-            <ArrowLeft className='h-4 w-4 mr-2' />
-            Volver a rutinas
-          </Link>
-          <h2 className='text-3xl font-bold text-gray-900'>Editar rutina</h2>
-          <p className='text-gray-600 mt-2'>
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center space-x-2'>
+            <Clock className='h-5 w-5' />
+            <span>Información de la rutina</span>
+          </CardTitle>
+          <CardDescription>
             Modifica los detalles de la rutina diaria
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='space-y-2'>
+              <Label htmlFor='title'>Título de la rutina</Label>
+              <Input
+                id='title'
+                type='text'
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                required
+                placeholder='Ej: Rutina matutina, Hora de dormir'
+              />
+            </div>
 
-        {/* Selector de hijo */}
-        {children.length > 1 && (
-          <Card className='mb-6'>
-            <CardHeader>
-              <CardTitle className='text-lg'>Selecciona un hijo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='flex flex-wrap gap-4'>
-                {children.map((child) => (
-                  <Card
-                    key={child.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedChild?.id === child.id
-                        ? 'ring-2 ring-blue-500 bg-blue-50'
-                        : 'hover:shadow-md'
-                    }`}
-                    onClick={() => setSelectedChild(child)}
-                  >
-                    <CardContent className='p-4'>
-                      <div className='flex items-center space-x-3'>
-                        <div>
-                          <h3 className='font-medium text-gray-900'>
-                            {child.name}
-                          </h3>
-                          <p className='text-sm text-gray-500'>
-                            {child.age} años
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+            <div className='space-y-2'>
+              <Label htmlFor='description'>Descripción (opcional)</Label>
+              <Textarea
+                id='description'
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange('description', e.target.value)
+                }
+                placeholder='Describe en qué consiste la rutina...'
+                rows={3}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='time'>Hora</Label>
+              <Input
+                id='time'
+                type='time'
+                value={formData.time}
+                onChange={(e) => handleInputChange('time', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className='space-y-3'>
+              <Label>Días de la semana</Label>
+              <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                {daysOfWeek.map((day) => (
+                  <div key={day.value} className='flex items-center space-x-2'>
+                    <Checkbox
+                      id={day.value}
+                      checked={formData.days.includes(day.value)}
+                      onCheckedChange={(checked) =>
+                        handleDayChange(day.value, checked as boolean)
+                      }
+                    />
+                    <Label htmlFor={day.value} className='text-sm'>
+                      {day.label}
+                    </Label>
+                  </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle className='flex items-center space-x-2'>
-              <Clock className='h-5 w-5' />
-              <span>Información de la rutina</span>
-            </CardTitle>
-            <CardDescription>
-              Modifica los detalles de la rutina diaria
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className='space-y-6'>
-              <div className='space-y-2'>
-                <Label htmlFor='title'>Título de la rutina</Label>
-                <Input
-                  id='title'
-                  type='text'
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  required
-                  placeholder='Ej: Rutina matutina, Hora de dormir'
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='description'>Descripción (opcional)</Label>
-                <Textarea
-                  id='description'
-                  value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange('description', e.target.value)
-                  }
-                  placeholder='Describe en qué consiste la rutina...'
-                  rows={3}
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='time'>Hora</Label>
-                <Input
-                  id='time'
-                  type='time'
-                  value={formData.time}
-                  onChange={(e) => handleInputChange('time', e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className='space-y-3'>
-                <Label>Días de la semana</Label>
-                <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
-                  {daysOfWeek.map((day) => (
-                    <div
-                      key={day.value}
-                      className='flex items-center space-x-2'
-                    >
-                      <Checkbox
-                        id={day.value}
-                        checked={formData.days.includes(day.value)}
-                        onCheckedChange={(checked) =>
-                          handleDayChange(day.value, checked as boolean)
-                        }
-                      />
-                      <Label htmlFor={day.value} className='text-sm'>
-                        {day.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                {formData.days.length === 0 && (
-                  <p className='text-sm text-red-600'>
-                    Debes seleccionar al menos un día
-                  </p>
-                )}
-              </div>
-
-              <div className='flex items-center space-x-2'>
-                <Checkbox
-                  id='is_active'
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) =>
-                    handleInputChange('is_active', checked as boolean)
-                  }
-                />
-                <Label htmlFor='is_active'>Rutina activa</Label>
-              </div>
-
-              <div className='p-4 bg-gray-50 rounded-lg'>
-                <h4 className='font-medium text-gray-900 mb-2'>
-                  Ejemplos de rutinas:
-                </h4>
-                <ul className='text-sm text-gray-600 space-y-1'>
-                  {routineExamples.map((example, index) => (
-                    <li key={index} className='flex items-center space-x-2'>
-                      <span className='text-blue-500'>•</span>
-                      <span>{example}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+              {formData.days.length === 0 && (
+                <p className='text-sm text-red-600'>
+                  Debes seleccionar al menos un día
+                </p>
               )}
+            </div>
 
-              <div className='flex justify-end space-x-4'>
-                <Link href='/routines'>
-                  <Button variant='outline'>Cancelar</Button>
-                </Link>
-                <Button type='submit' disabled={isLoading}>
-                  <Save className='h-4 w-4 mr-2' />
-                  {isLoading ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <div className='flex items-center space-x-2'>
+              <Checkbox
+                id='is_active'
+                checked={formData.is_active}
+                onCheckedChange={(checked) =>
+                  handleInputChange('is_active', checked as boolean)
+                }
+              />
+              <Label htmlFor='is_active'>Rutina activa</Label>
+            </div>
+
+            <div className='p-4 bg-gray-50 rounded-lg'>
+              <h4 className='font-medium text-gray-900 mb-2'>
+                Ejemplos de rutinas:
+              </h4>
+              <ul className='text-sm text-gray-600 space-y-1'>
+                {routineExamples.map((example, index) => (
+                  <li key={index} className='flex items-center space-x-2'>
+                    <span className='text-blue-500'>•</span>
+                    <span>{example}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {error && (
+              <Alert variant='destructive'>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className='flex justify-end space-x-4'>
+              <Link href='/routines'>
+                <Button variant='outline'>Cancelar</Button>
+              </Link>
+              <Button type='submit' disabled={isLoading}>
+                <Save className='h-4 w-4 mr-2' />
+                {isLoading ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }

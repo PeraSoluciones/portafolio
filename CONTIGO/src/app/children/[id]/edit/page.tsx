@@ -183,140 +183,134 @@ export default function EditChildPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='mb-8'>
-          <Link
-            href='/children'
-            className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
-          >
-            <ArrowLeft className='h-4 w-4 mr-2' />
-            Volver a hijos
-          </Link>
-          <h2 className='text-3xl font-bold text-gray-900'>Editar hijo</h2>
-          <p className='text-gray-600 mt-2'>
-            Modifica la información de tu hijo
-          </p>
-        </div>
+    <>
+      <div className='mb-8'>
+        <Link
+          href='/children'
+          className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
+        >
+          <ArrowLeft className='h-4 w-4 mr-2' />
+          Volver a hijos
+        </Link>
+        <h2 className='text-3xl font-bold text-gray-900'>Editar hijo</h2>
+        <p className='text-gray-600 mt-2'>Modifica la información de tu hijo</p>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className='flex items-center space-x-2'>
-              <User className='h-5 w-5' />
-              <span>Información del hijo</span>
-            </CardTitle>
-            <CardDescription>
-              Modifica los datos de tu hijo para personalizar su experiencia
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className='space-y-6'>
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center space-x-2'>
+            <User className='h-5 w-5' />
+            <span>Información del hijo</span>
+          </CardTitle>
+          <CardDescription>
+            Modifica los datos de tu hijo para personalizar su experiencia
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='space-y-2'>
+              <Label htmlFor='name'>Nombre completo</Label>
+              <Input
+                id='name'
+                type='text'
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                required
+                placeholder='Ej: Juan Pérez'
+              />
+            </div>
+
+            <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label htmlFor='name'>Nombre completo</Label>
+                <Label htmlFor='age'>Edad</Label>
                 <Input
-                  id='name'
-                  type='text'
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  id='age'
+                  type='number'
+                  value={formData.age}
+                  onChange={(e) => handleInputChange('age', e.target.value)}
                   required
-                  placeholder='Ej: Juan Pérez'
+                  min='1'
+                  max='17'
+                  placeholder='8'
                 />
               </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='age'>Edad</Label>
-                  <Input
-                    id='age'
-                    type='number'
-                    value={formData.age}
-                    onChange={(e) => handleInputChange('age', e.target.value)}
-                    required
-                    min='1'
-                    max='17'
-                    placeholder='8'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
-                  <Input
-                    id='birth_date'
-                    type='date'
-                    value={formData.birth_date}
-                    onChange={(e) =>
-                      handleInputChange('birth_date', e.target.value)
-                    }
-                    required
-                  />
-                </div>
-              </div>
-
               <div className='space-y-2'>
-                <Label htmlFor='adhd_type'>Tipo de TDAH</Label>
-                <Select
-                  value={formData.adhd_type}
-                  onValueChange={(value) =>
-                    handleInputChange('adhd_type', value)
+                <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
+                <Input
+                  id='birth_date'
+                  type='date'
+                  value={formData.birth_date}
+                  onChange={(e) =>
+                    handleInputChange('birth_date', e.target.value)
                   }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Selecciona el tipo de TDAH' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {adhdTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div>
-                          <div className='font-medium'>{type.label}</div>
-                          <div className='text-xs text-gray-500'>
-                            {type.description}
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  required
+                />
               </div>
+            </div>
 
-              <div className='p-4 bg-blue-50 rounded-lg'>
-                <h4 className='font-medium text-blue-900 mb-2'>
-                  Información sobre tipos de TDAH:
-                </h4>
-                <div className='text-sm text-blue-800 space-y-2'>
-                  <div>
-                    <strong>Inatento:</strong> Dificultad para mantener la
-                    atención, sigue instrucciones, organización.
-                  </div>
-                  <div>
-                    <strong>Hiperactivo:</strong> Exceso de movimiento,
-                    dificultad para estar quieto, impulsividad.
-                  </div>
-                  <div>
-                    <strong>Combinado:</strong> Presenta características de
-                    ambos tipos.
-                  </div>
+            <div className='space-y-2'>
+              <Label htmlFor='adhd_type'>Tipo de TDAH</Label>
+              <Select
+                value={formData.adhd_type}
+                onValueChange={(value) => handleInputChange('adhd_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Selecciona el tipo de TDAH' />
+                </SelectTrigger>
+                <SelectContent>
+                  {adhdTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      <div>
+                        <div className='font-medium'>{type.label}</div>
+                        <div className='text-xs text-gray-500'>
+                          {type.description}
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className='p-4 bg-blue-50 rounded-lg'>
+              <h4 className='font-medium text-blue-900 mb-2'>
+                Información sobre tipos de TDAH:
+              </h4>
+              <div className='text-sm text-blue-800 space-y-2'>
+                <div>
+                  <strong>Inatento:</strong> Dificultad para mantener la
+                  atención, sigue instrucciones, organización.
+                </div>
+                <div>
+                  <strong>Hiperactivo:</strong> Exceso de movimiento, dificultad
+                  para estar quieto, impulsividad.
+                </div>
+                <div>
+                  <strong>Combinado:</strong> Presenta características de ambos
+                  tipos.
                 </div>
               </div>
+            </div>
 
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            {error && (
+              <Alert variant='destructive'>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-              <div className='flex justify-end space-x-4'>
-                <Link href='/children'>
-                  <Button variant='outline'>Cancelar</Button>
-                </Link>
-                <Button type='submit' disabled={isLoading}>
-                  <Save className='h-4 w-4 mr-2' />
-                  {isLoading ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <div className='flex justify-end space-x-4'>
+              <Link href='/children'>
+                <Button variant='outline'>Cancelar</Button>
+              </Link>
+              <Button type='submit' disabled={isLoading}>
+                <Save className='h-4 w-4 mr-2' />
+                {isLoading ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }

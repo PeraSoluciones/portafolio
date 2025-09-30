@@ -104,48 +104,61 @@ export default function ChildrenPage() {
 
   if (loading) {
     return (
-      <div className='min-h-screen flex items-center justify-center'>
+      <div className='min-h-screen flex items-center justify-center bg-gray-50'>
         <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600'></div>
       </div>
     );
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='mb-8'>
-          <h2 className='text-3xl font-bold text-gray-900'>Mis hijos</h2>
-          <p className='text-gray-600 mt-2'>
-            Gestiona los perfiles de tus hijos y su información personal
-          </p>
-        </div>
-
-        {children.length === 0 ? (
-          <div className='text-center py-12'>
-            <div className='mx-auto h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center mb-6'>
-              <Calendar className='h-12 w-12 text-gray-400' />
-            </div>
-            <h3 className='text-2xl font-bold text-gray-900 mb-4'>
-              No hay hijos registrados
-            </h3>
-            <p className='text-gray-600 mb-8'>
-              Agrega a tu primer hijo para empezar a crear rutinas y hábitos
-              personalizados.
+    <>
+      <div className='mb-8'>
+        <div className='flex justify-between items-center'>
+          <div>
+            <h2 className='text-3xl font-bold text-gray-900'>Mis hijos</h2>
+            <p className='text-gray-600 mt-2'>
+              Gestiona los perfiles de tus hijos y su información personal
             </p>
-            <Link href='/children/new'>
-              <Button size='lg'>
+          </div>
+          {children.length > 0 && (
+            <Link href='/children/new' className='hidden md:inline-flex'>
+              <Button>
                 <Plus className='h-5 w-5 mr-2' />
-                Agregar primer hijo
+                Agregar hijo
               </Button>
             </Link>
+          )}
+        </div>
+      </div>
+
+      {children.length === 0 ? (
+        <div className='text-center py-12'>
+          <div className='mx-auto h-24 w-24 rounded-full bg-gray-100 flex items-center justify-center mb-6'>
+            <Calendar className='h-12 w-12 text-gray-400' />
           </div>
-        ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {children.map((child) => (
-              <Card
-                key={child.id}
-                className='hover:shadow-lg transition-shadow'
-              >
+          <h3 className='text-2xl font-bold text-gray-900 mb-4'>
+            No hay hijos registrados
+          </h3>
+          <p className='text-gray-600 mb-8'>
+            Agrega a tu primer hijo para empezar a crear rutinas y hábitos
+            personalizados.
+          </p>
+          <Link href='/children/new' className='hidden md:inline-flex'>
+            <Button size='lg'>
+              <Plus className='h-5 w-5 mr-2' />
+              Agregar primer hijo
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-24'>
+          {children.map((child) => (
+            <Link
+              href={`/dashboard/?child=${child.id}`}
+              key={child.id}
+              className='group block'
+            >
+              <Card className='h-full transition-all duration-200 group-hover:shadow-lg group-hover:border-primary cursor-pointer'>
                 <CardHeader>
                   <div className='flex items-center justify-between'>
                     <div className='flex items-center space-x-3'>
@@ -163,16 +176,29 @@ export default function ChildrenPage() {
                       </div>
                     </div>
                     <div className='flex space-x-2'>
-                      <Link href={`/children/${child.id}/edit`}>
-                        <Button variant='outline' size='sm'>
-                          <Edit className='h-4 w-4' />
-                        </Button>
-                      </Link>
                       <Button
                         variant='outline'
                         size='sm'
-                        onClick={() => handleDelete(child.id)}
-                        className='text-red-600 hover:text-red-700'
+                        className='opacity-50 group-hover:opacity-100 transition-opacity'
+                        aria-label={`Editar perfil de ${child.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          router.push(`/children/${child.id}/edit`);
+                        }}
+                      >
+                        <Edit className='h-4 w-4' />
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleDelete(child.id);
+                        }}
+                        className='text-red-600 hover:text-red-700 opacity-50 group-hover:opacity-100 transition-opacity'
+                        aria-label={`Eliminar perfil de ${child.name}`}
                       >
                         <Trash2 className='h-4 w-4' />
                       </Button>
@@ -203,20 +229,25 @@ export default function ChildrenPage() {
                         )}
                       </p>
                     </div>
-                    <div className='pt-4'>
-                      <Link href={`/dashboard?child=${child.id}`}>
-                        <Button variant='outline' className='w-full'>
-                          Ver dashboard
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            </Link>
+          ))}
+        </div>
+      )}
+      {/* Botón Flotante para Móvil */}
+      <div className='md:hidden'>
+        <Link href='/children/new'>
+          <Button
+            size='icon'
+            className='fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-40'
+          >
+            <Plus className='h-6 w-6' />
+            <span className='sr-only'>Agregar hijo</span>
+          </Button>
+        </Link>
       </div>
-    </div>
+    </>
   );
 }

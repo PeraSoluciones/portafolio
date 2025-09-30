@@ -261,244 +261,157 @@ export default function EditHabitPage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      {/* Header */}
-      <header className='bg-white shadow-sm border-b'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='flex items-center h-16'>
-            <div className='flex items-center'>
-              <h1 className='text-2xl font-bold text-gray-900'>CONTIGO</h1>
-              <nav className='ml-10 flex space-x-8'>
-                <Link
-                  href='/dashboard'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href='/children'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Hijos
-                </Link>
-                <Link
-                  href='/routines'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Rutinas
-                </Link>
-                <Link href='/habits' className='text-blue-600 font-medium'>
-                  Hábitos
-                </Link>
-                <Link
-                  href='/behaviors'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Comportamientos
-                </Link>
-                <Link
-                  href='/rewards'
-                  className='text-gray-600 hover:text-gray-900'
-                >
-                  Recompensas
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
+    <>
+      <div className='mb-8'>
+        <Link
+          href='/habits'
+          className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
+        >
+          <ArrowLeft className='h-4 w-4 mr-2' />
+          Volver a hábitos
+        </Link>
+        <h2 className='text-3xl font-bold text-gray-900'>Editar hábito</h2>
+        <p className='text-gray-600 mt-2'>
+          Modifica los detalles del hábito a seguir
+        </p>
+      </div>
 
-      <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='mb-8'>
-          <Link
-            href='/habits'
-            className='inline-flex items-center text-gray-600 hover:text-gray-900 mb-4'
-          >
-            <ArrowLeft className='h-4 w-4 mr-2' />
-            Volver a hábitos
-          </Link>
-          <h2 className='text-3xl font-bold text-gray-900'>Editar hábito</h2>
-          <p className='text-gray-600 mt-2'>
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center space-x-2'>
+            <Target className='h-5 w-5' />
+            <span>Información del hábito</span>
+          </CardTitle>
+          <CardDescription>
             Modifica los detalles del hábito a seguir
-          </p>
-        </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='space-y-2'>
+              <Label htmlFor='title'>Título del hábito</Label>
+              <Input
+                id='title'
+                type='text'
+                value={formData.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                required
+                placeholder='Ej: Beber agua, Hacer ejercicio'
+              />
+            </div>
 
-        {/* Selector de hijo */}
-        {children.length > 1 && (
-          <Card className='mb-6'>
-            <CardHeader>
-              <CardTitle className='text-lg'>Selecciona un hijo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='flex flex-wrap gap-4'>
-                {children.map((child) => (
-                  <Card
-                    key={child.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedChild?.id === child.id
-                        ? 'ring-2 ring-blue-500 bg-blue-50'
-                        : 'hover:shadow-md'
-                    }`}
-                    onClick={() => setSelectedChild(child)}
-                  >
-                    <CardContent className='p-4'>
-                      <div className='flex items-center space-x-3'>
-                        <div>
-                          <h3 className='font-medium text-gray-900'>
-                            {child.name}
-                          </h3>
-                          <p className='text-sm text-gray-500'>
-                            {child.age} años
-                          </p>
+            <div className='space-y-2'>
+              <Label htmlFor='description'>Descripción (opcional)</Label>
+              <Textarea
+                id='description'
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange('description', e.target.value)
+                }
+                placeholder='Describe en qué consiste el hábito...'
+                rows={3}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='category'>Categoría</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleInputChange('category', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='Selecciona una categoría' />
+                </SelectTrigger>
+                <SelectContent>
+                  {habitCategories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      <div>
+                        <div className='font-medium'>{category.label}</div>
+                        <div className='text-xs text-gray-500'>
+                          {category.description}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className='flex items-center space-x-2'>
-              <Target className='h-5 w-5' />
-              <span>Información del hábito</span>
-            </CardTitle>
-            <CardDescription>
-              Modifica los detalles del hábito a seguir
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className='space-y-6'>
+            <div className='grid grid-cols-2 gap-4'>
               <div className='space-y-2'>
-                <Label htmlFor='title'>Título del hábito</Label>
+                <Label htmlFor='target_frequency'>Frecuencia objetivo</Label>
                 <Input
-                  id='title'
-                  type='text'
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  required
-                  placeholder='Ej: Beber agua, Hacer ejercicio'
-                />
-              </div>
-
-              <div className='space-y-2'>
-                <Label htmlFor='description'>Descripción (opcional)</Label>
-                <Textarea
-                  id='description'
-                  value={formData.description}
+                  id='target_frequency'
+                  type='number'
+                  value={formData.target_frequency}
                   onChange={(e) =>
-                    handleInputChange('description', e.target.value)
+                    handleInputChange('target_frequency', e.target.value)
                   }
-                  placeholder='Describe en qué consiste el hábito...'
-                  rows={3}
+                  required
+                  min='1'
+                  placeholder='8'
                 />
               </div>
 
               <div className='space-y-2'>
-                <Label htmlFor='category'>Categoría</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    handleInputChange('category', value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder='Selecciona una categoría' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {habitCategories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        <div>
-                          <div className='font-medium'>{category.label}</div>
-                          <div className='text-xs text-gray-500'>
-                            {category.description}
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor='unit'>Unidad</Label>
+                <Input
+                  id='unit'
+                  type='text'
+                  value={formData.unit}
+                  onChange={(e) => handleInputChange('unit', e.target.value)}
+                  required
+                  placeholder='veces'
+                />
+                {formData.category && (
+                  <p className='text-xs text-gray-500'>
+                    Sugerencias:{' '}
+                    {getUnitSuggestions(formData.category).join(', ')}
+                  </p>
+                )}
               </div>
+            </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='target_frequency'>Frecuencia objetivo</Label>
-                  <Input
-                    id='target_frequency'
-                    type='number'
-                    value={formData.target_frequency}
-                    onChange={(e) =>
-                      handleInputChange('target_frequency', e.target.value)
-                    }
-                    required
-                    min='1'
-                    placeholder='8'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='unit'>Unidad</Label>
-                  <Input
-                    id='unit'
-                    type='text'
-                    value={formData.unit}
-                    onChange={(e) => handleInputChange('unit', e.target.value)}
-                    required
-                    placeholder='veces'
-                  />
-                  {formData.category && (
-                    <p className='text-xs text-gray-500'>
-                      Sugerencias:{' '}
-                      {getUnitSuggestions(formData.category).join(', ')}
-                    </p>
-                  )}
-                </div>
+            {formData.category && (
+              <div className='p-4 bg-gray-50 rounded-lg'>
+                <h4 className='font-medium text-gray-900 mb-2'>
+                  Ejemplos de hábitos de{' '}
+                  {habitCategories
+                    .find((c) => c.value === formData.category)
+                    ?.label.toLowerCase()}
+                  :
+                </h4>
+                <ul className='text-sm text-gray-600 space-y-1'>
+                  {habitExamples[
+                    formData.category as keyof typeof habitExamples
+                  ].map((example, index) => (
+                    <li key={index} className='flex items-center space-x-2'>
+                      <span className='text-green-500'>•</span>
+                      <span>{example}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+            )}
 
-              {formData.category && (
-                <div className='p-4 bg-gray-50 rounded-lg'>
-                  <h4 className='font-medium text-gray-900 mb-2'>
-                    Ejemplos de hábitos de{' '}
-                    {habitCategories
-                      .find((c) => c.value === formData.category)
-                      ?.label.toLowerCase()}
-                    :
-                  </h4>
-                  <ul className='text-sm text-gray-600 space-y-1'>
-                    {habitExamples[
-                      formData.category as keyof typeof habitExamples
-                    ].map((example, index) => (
-                      <li key={index} className='flex items-center space-x-2'>
-                        <span className='text-green-500'>•</span>
-                        <span>{example}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+            {error && (
+              <Alert variant='destructive'>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-              {error && (
-                <Alert variant='destructive'>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className='flex justify-end space-x-4'>
-                <Link href='/habits'>
-                  <Button variant='outline'>Cancelar</Button>
-                </Link>
-                <Button type='submit' disabled={isLoading}>
-                  <Save className='h-4 w-4 mr-2' />
-                  {isLoading ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <div className='flex justify-end space-x-4'>
+              <Link href='/habits'>
+                <Button variant='outline'>Cancelar</Button>
+              </Link>
+              <Button type='submit' disabled={isLoading}>
+                <Save className='h-4 w-4 mr-2' />
+                {isLoading ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }
