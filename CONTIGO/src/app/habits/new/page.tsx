@@ -26,6 +26,7 @@ import { useAppStore } from '@/store/app-store';
 import { Habit } from '@/types';
 import { ArrowLeft, Target } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const habitCategories = [
   {
@@ -67,6 +68,43 @@ export default function NewHabitPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const typeColors = {
+    SLEEP: {
+      border: 'border-t-blue-500',
+      text: 'text-blue-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
+    NUTRITION: {
+      border: 'border-t-green-500',
+      text: 'text-green-600',
+      button: 'bg-green-600 hover:bg-green-700',
+    },
+    EXERCISE: {
+      border: 'border-t-orange-500',
+      text: 'text-orange-600',
+      button: 'bg-orange-600 hover:bg-orange-700',
+    },
+    HYGIENE: {
+      border: 'border-t-purple-500',
+      text: 'text-purple-600',
+      button: 'bg-purple-600 hover:bg-purple-700',
+    },
+    SOCIAL: {
+      border: 'border-t-pink-500',
+      text: 'text-pink-600',
+      button: 'bg-pink-600 hover:bg-pink-700',
+    },
+    default: {
+      border: 'border-t-secondary',
+      text: 'text-secondary',
+      button: 'bg-secondary hover:bg-secondary/90',
+    },
+  };
+
+  const currentStyle =
+    typeColors[formData.category as keyof typeof typeColors] ||
+    typeColors.default;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,10 +191,12 @@ export default function NewHabitPage() {
         </p>
       </div>
 
-      <Card>
+      <Card
+        className={`transition-all duration-300 border-t-4 ${currentStyle.border}`}
+      >
         <CardHeader>
           <CardTitle className='flex items-center space-x-2'>
-            <Target className='h-5 w-5' />
+            <Target className={`h-5 w-5 ${currentStyle.text}`} />
             <span>Información del hábito</span>
           </CardTitle>
           <CardDescription>
@@ -254,11 +294,15 @@ export default function NewHabitPage() {
               </Alert>
             )}
 
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/habits'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className={cn(currentStyle.button)}
+              >
                 {isLoading ? 'Creando...' : 'Crear hábito'}
               </Button>
             </div>

@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, Star, Award } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function NewBehaviorPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
@@ -37,6 +38,27 @@ export default function NewBehaviorPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const typeColors = {
+    POSITIVE: {
+      border: 'border-t-green-500',
+      text: 'text-green-600',
+      button: 'bg-green-600 hover:bg-green-700',
+    },
+    NEGATIVE: {
+      border: 'border-t-red-500',
+      text: 'text-red-600',
+      button: 'bg-red-600 hover:bg-red-700',
+    },
+    default: {
+      border: 'border-t-accent',
+      text: 'text-accent',
+      button: 'bg-accent hover:bg-accent/90',
+    },
+  };
+
+  const currentStyle =
+    typeColors[formData.type as keyof typeof typeColors] || typeColors.default;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,10 +152,12 @@ export default function NewBehaviorPage() {
         </p>
       </div>
 
-      <Card>
+      <Card
+        className={`transition-all duration-300 border-t-4 ${currentStyle.border}`}
+      >
         <CardHeader>
           <CardTitle className='flex items-center space-x-2'>
-            <Star className='h-5 w-5' />
+            <Star className={`h-5 w-5 ${currentStyle.text}`} />
             <span>Información del comportamiento</span>
           </CardTitle>
           <CardDescription>
@@ -178,15 +202,25 @@ export default function NewBehaviorPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='POSITIVE'>
-                    <div className='flex items-center space-x-2'>
-                      <span className='text-green-600'>➕</span>
-                      <span>Positivo - Refuerza conductas deseables</span>
+                    <div className='flex items-start space-x-3'>
+                      <span className='text-lg text-green-600'>➕</span>
+                      <div className='flex flex-col'>
+                        <span className='font-medium'>Positivo</span>
+                        <span className='text-xs text-muted-foreground'>
+                          Refuerza conductas deseables
+                        </span>
+                      </div>
                     </div>
                   </SelectItem>
                   <SelectItem value='NEGATIVE'>
-                    <div className='flex items-center space-x-2'>
-                      <span className='text-red-600'>➖</span>
-                      <span>Negativo - Registra conductas a mejorar</span>
+                    <div className='flex items-start space-x-3'>
+                      <span className='text-lg text-red-600'>➖</span>
+                      <div className='flex flex-col'>
+                        <span className='font-medium'>Negativo</span>
+                        <span className='text-xs text-muted-foreground'>
+                          Registra conductas a mejorar
+                        </span>
+                      </div>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -234,11 +268,15 @@ export default function NewBehaviorPage() {
               </Alert>
             )}
 
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/behaviors'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className={cn(currentStyle.button)}
+              >
                 {isLoading ? 'Creando...' : 'Crear comportamiento'}
               </Button>
             </div>

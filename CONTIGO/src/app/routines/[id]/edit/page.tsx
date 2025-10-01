@@ -248,10 +248,10 @@ export default function EditRoutinePage() {
         </p>
       </div>
 
-      <Card>
+      <Card className='border-t-4 border-t-secondary'>
         <CardHeader>
           <CardTitle className='flex items-center space-x-2'>
-            <Clock className='h-5 w-5' />
+            <Clock className='h-5 w-5 text-secondary' />
             <span>Información de la rutina</span>
           </CardTitle>
           <CardDescription>
@@ -356,7 +356,11 @@ export default function EditRoutinePage() {
               <Link href='/routines'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className='bg-secondary hover:bg-secondary/90'
+              >
                 <Save className='h-4 w-4 mr-2' />
                 {isLoading ? 'Guardando...' : 'Guardar cambios'}
               </Button>

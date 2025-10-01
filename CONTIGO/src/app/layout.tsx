@@ -15,30 +15,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Z.ai Code Scaffold - AI-Powered Development',
+  title: 'CONTIGO - Aplicación para Padres de Niños con TDAH',
   description:
-    'Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.',
+    'Aplicación web moderna diseñada específicamente para padres de niños con TDAH, enfocada en la parte psicosocial y conductual. Gestiona perfiles, rutinas, hábitos, comportamientos y recompensas.',
   keywords: [
-    'Z.ai',
+    'TDAH',
+    'Niños con TDAH',
+    'Padres',
+    'Rutinas',
+    'Hábitos',
+    'Comportamiento',
+    'Recompensas',
     'Next.js',
     'TypeScript',
     'Tailwind CSS',
     'shadcn/ui',
-    'AI development',
+    'Supabase',
     'React',
   ],
-  authors: [{ name: 'Z.ai Team' }],
+  authors: [{ name: 'CONTIGO Team' }],
   openGraph: {
-    title: 'Z.ai Code Scaffold',
-    description: 'AI-powered development with modern React stack',
-    url: 'https://chat.z.ai',
-    siteName: 'Z.ai',
+    title: 'CONTIGO - Aplicación para Padres de Niños con TDAH',
+    description: 'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
+    siteName: 'CONTIGO',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Z.ai Code Scaffold',
-    description: 'AI-powered development with modern React stack',
+    title: 'CONTIGO - Aplicación para Padres de Niños con TDAH',
+    description: 'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
   },
 };
 
@@ -48,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='es' suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-foreground overflow-hidden`}
         suppressHydrationWarning={true}

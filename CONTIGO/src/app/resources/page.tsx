@@ -23,6 +23,20 @@ export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const router = useRouter();
 
+  const typeCategoryColors = {
+    ROUTINES: 'border-t-secondary',
+    HABITS: 'border-t-chart-5',
+    BEHAVIOR: 'border-t-accent',
+    EMOTIONAL: 'border-t-chart-1',
+    EDUCATIONAL: 'border-t-destructive',
+  };
+
+  const typeColors = {
+    ARTICLE: 'text-accent',
+    VIDEO: 'text-chart-1',
+    TIP: 'text-success',
+  };
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -67,13 +81,13 @@ export default function ResourcesPage() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'ARTICLE':
-        return <BookOpen className='h-4 w-4' />;
+        return <BookOpen className={`h-4 w-4 ${typeColors[type]}`} />;
       case 'VIDEO':
-        return <Video className='h-4 w-4' />;
+        return <Video className={`h-4 w-4 ${typeColors[type]}`} />;
       case 'TIP':
-        return <Lightbulb className='h-4 w-4' />;
+        return <Lightbulb className={`h-4 w-4 ${typeColors[type]}`} />;
       default:
-        return <BookOpen className='h-4 w-4' />;
+        return <BookOpen className='h-4 w-4 text-accent' />;
     }
   };
 
@@ -128,7 +142,9 @@ export default function ResourcesPage() {
             {resources.map((resource) => (
               <Card
                 key={resource.id}
-                className='hover:shadow-lg transition-shadow'
+                className={`hover:shadow-lg transition-shadow border-t-4 ${
+                  typeCategoryColors[resource.category] || 'border-t-chart-3'
+                }`}
               >
                 <CardHeader>
                   <div className='flex items-center justify-between'>
@@ -191,7 +207,10 @@ export default function ResourcesPage() {
                   {getResourcesByCategory(category).map((resource) => (
                     <Card
                       key={resource.id}
-                      className='hover:shadow-lg transition-shadow'
+                      className={`hover:shadow-lg transition-shadow border-t-4 ${
+                        typeCategoryColors[resource.category] ||
+                        'border-t-chart-3'
+                      }`}
                     >
                       <CardHeader>
                         <div className='flex items-center justify-between'>

@@ -201,10 +201,10 @@ export default function EditRewardPage() {
         </p>
       </div>
 
-      <Card>
+      <Card className='border-t-4 border-t-green-500'>
         <CardHeader>
           <CardTitle className='flex items-center space-x-2'>
-            <Gift className='h-5 w-5' />
+            <Gift className='h-5 w-5 text-green-600' />
             <span>Información de la recompensa</span>
           </CardTitle>
           <CardDescription>
@@ -277,11 +277,15 @@ export default function EditRewardPage() {
               </Alert>
             )}
 
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/rewards'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className='bg-green-600 hover:bg-green-700/90'
+              >
                 <Save className='h-4 w-4 mr-2' />
                 {isLoading ? 'Guardando...' : 'Guardar cambios'}
               </Button>

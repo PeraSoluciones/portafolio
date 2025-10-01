@@ -25,6 +25,7 @@ import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, User, Save } from 'lucide-react';
 import Link from 'next/link';
 import { Child } from '@/types';
+import { cn } from '@/lib/utils';
 
 const adhdTypes = [
   {
@@ -57,6 +58,33 @@ export default function EditChildPage() {
   const [loadingChild, setLoadingChild] = useState(true);
   const router = useRouter();
   const params = useParams();
+
+  const typeColors = {
+    INATTENTIVE: {
+      border: 'border-t-blue-500',
+      text: 'text-blue-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
+    HYPERACTIVE: {
+      border: 'border-t-orange-500',
+      text: 'text-orange-600',
+      button: 'bg-orange-600 hover:bg-orange-700',
+    },
+    COMBINED: {
+      border: 'border-t-purple-500',
+      text: 'text-purple-600',
+      button: 'bg-purple-600 hover:bg-purple-700',
+    },
+    default: {
+      border: 'border-t-success',
+      text: 'text-success',
+      button: 'bg-success hover:bg-success/90',
+    },
+  };
+
+  const currentStyle =
+    typeColors[formData.adhd_type as keyof typeof typeColors] ||
+    typeColors.default;
 
   useEffect(() => {
     if (!user) {
@@ -196,10 +224,12 @@ export default function EditChildPage() {
         <p className='text-gray-600 mt-2'>Modifica la información de tu hijo</p>
       </div>
 
-      <Card>
+      <Card
+        className={`transition-all duration-300 border-t-4 ${currentStyle.border}`}
+      >
         <CardHeader>
           <CardTitle className='flex items-center space-x-2'>
-            <User className='h-5 w-5' />
+            <User className={`h-5 w-5 ${currentStyle.text}`} />
             <span>Información del hijo</span>
           </CardTitle>
           <CardDescription>
@@ -299,11 +329,15 @@ export default function EditChildPage() {
               </Alert>
             )}
 
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/children'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className={cn(currentStyle.button)}
+              >
                 <Save className='h-4 w-4 mr-2' />
                 {isLoading ? 'Guardando...' : 'Guardar cambios'}
               </Button>

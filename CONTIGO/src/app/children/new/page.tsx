@@ -23,8 +23,9 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { Child } from '@/types';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default function NewChildPage() {
   const { user } = useAppStore();
@@ -37,6 +38,33 @@ export default function NewChildPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const typeColors = {
+    INATTENTIVE: {
+      border: 'border-t-blue-500',
+      text: 'text-blue-600',
+      button: 'bg-blue-600 hover:bg-blue-700',
+    },
+    HYPERACTIVE: {
+      border: 'border-t-orange-500',
+      text: 'text-orange-600',
+      button: 'bg-orange-600 hover:bg-orange-700',
+    },
+    COMBINED: {
+      border: 'border-t-purple-500',
+      text: 'text-purple-600',
+      button: 'bg-purple-600 hover:bg-purple-700',
+    },
+    default: {
+      border: 'border-t-green-500',
+      text: 'text-green-600',
+      button: 'bg-green-600 hover:bg-green-700/90',
+    },
+  };
+
+  const currentStyle =
+    typeColors[formData.adhd_type as keyof typeof typeColors] ||
+    typeColors.default;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,9 +128,14 @@ export default function NewChildPage() {
         </p>
       </div>
 
-      <Card>
+      <Card
+        className={`transition-all duration-300 border-t-4 ${currentStyle.border}`}
+      >
         <CardHeader>
-          <CardTitle>Información personal</CardTitle>
+          <CardTitle className='flex items-center space-x-2'>
+            <User className={`h-5 w-5 ${currentStyle.text}`} />
+            <span>Información del hijo</span>
+          </CardTitle>
           <CardDescription>
             Los datos ayudarán a personalizar las recomendaciones y rutinas
           </CardDescription>
@@ -172,11 +205,15 @@ export default function NewChildPage() {
               </Alert>
             )}
 
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/children'>
                 <Button variant='outline'>Cancelar</Button>
               </Link>
-              <Button type='submit' disabled={isLoading}>
+              <Button
+                type='submit'
+                disabled={isLoading}
+                className={cn(currentStyle.button)}
+              >
                 {isLoading ? 'Agregando...' : 'Agregar hijo'}
               </Button>
             </div>

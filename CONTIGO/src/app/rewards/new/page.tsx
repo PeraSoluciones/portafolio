@@ -157,10 +157,10 @@ export default function NewRewardPage() {
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         <div className='lg:col-span-2'>
-          <Card>
+          <Card className='border-t-4 border-t-success'>
             <CardHeader>
               <CardTitle className='flex items-center space-x-2'>
-                <Gift className='h-5 w-5' />
+                <Gift className='h-5 w-5 text-success' />
                 <span>Información de la recompensa</span>
               </CardTitle>
               <CardDescription>
@@ -218,11 +218,11 @@ export default function NewRewardPage() {
                   </Alert>
                 )}
 
-                <div className='flex justify-end space-x-4'>
+                <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
                   <Link href='/rewards'>
                     <Button variant='outline'>Cancelar</Button>
                   </Link>
-                  <Button type='submit' disabled={isLoading}>
+                  <Button type='submit' disabled={isLoading} className='bg-success hover:bg-success/90'>
                     {isLoading ? 'Creando...' : 'Crear recompensa'}
                   </Button>
                 </div>
@@ -232,10 +232,10 @@ export default function NewRewardPage() {
         </div>
 
         <div>
-          <Card>
+          <Card className='border-t-4 border-t-secondary'>
             <CardHeader>
               <CardTitle className='flex items-center space-x-2'>
-                <Award className='h-5 w-5' />
+                <Award className='h-5 w-5 text-secondary' />
                 <span>Ejemplos</span>
               </CardTitle>
               <CardDescription>
@@ -252,7 +252,7 @@ export default function NewRewardPage() {
                   >
                     <div className='flex items-center justify-between mb-1'>
                       <h4 className='font-medium text-sm'>{example.title}</h4>
-                      <Badge variant='outline' className='text-xs'>
+                      <Badge variant='default' className='text-xs'>
                         {example.points} pts
                       </Badge>
                     </div>
