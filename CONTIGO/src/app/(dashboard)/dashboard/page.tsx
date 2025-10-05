@@ -8,13 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Calendar, 
-  Target, 
-  Star, 
-  Trophy, 
-  Plus, 
-  Users, 
+import {
+  Calendar,
+  Target,
+  Star,
+  Trophy,
+  Plus,
+  Users,
   BookOpen,
   TrendingUp,
   Clock,
@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Routine, Habit, Behavior, Reward, Child } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -178,20 +179,20 @@ export default function DashboardPage() {
   const getADHDTypeColor = (type: string) => {
     switch (type) {
       case 'INATTENTIVE':
-        return 'bg-blue-100 text-blue-800';
+        return 'text-chart-1';
       case 'HYPERACTIVE':
-        return 'bg-red-100 text-red-800';
+        return 'text-destructive';
       case 'COMBINED':
-        return 'bg-purple-100 text-purple-800';
+        return 'text-chart-2';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'text-muted-foreground';
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -200,8 +201,8 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">Cargando información del usuario...</p>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-muted-foreground mb-4">Cargando información del usuario...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
         </div>
       </div>
     );
@@ -212,10 +213,10 @@ export default function DashboardPage() {
       {/* Bienvenida */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             ¡Bienvenido, {user.full_name}!
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Gestiona las rutinas y actividades de {selectedChild?.name || 'tus hijos'}
           </p>
         </div>
@@ -229,9 +230,9 @@ export default function DashboardPage() {
 
       {/* Selector de hijos */}
       {children.length > 0 && (
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <Card className="border-t-4 border-t-primary">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-900">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Users className="h-5 w-5" />
               Hijo seleccionado
             </CardTitle>
@@ -245,9 +246,9 @@ export default function DashboardPage() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-gray-900">{selectedChild?.name}</p>
-                <p className="text-sm text-gray-500">{selectedChild?.age} años</p>
-                <Badge className={`mt-1 ${getADHDTypeColor(selectedChild?.adhd_type || '')}`}>
+                <p className="font-medium text-foreground">{selectedChild?.name}</p>
+                <p className="text-sm text-muted-foreground">{selectedChild?.age} años</p>
+                <Badge variant="outline" className={cn("mt-1", getADHDTypeColor(selectedChild?.adhd_type || ''))}>
                   {getADHDTypeLabel(selectedChild?.adhd_type || '')}
                 </Badge>
               </div>
@@ -265,18 +266,18 @@ export default function DashboardPage() {
 
       {/* No hay hijos */}
       {children.length === 0 && (
-        <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+        <Card className="border-t-4 border-t-accent">
           <CardContent className="pt-6">
             <div className="text-center">
-              <Users className="h-12 w-12 text-amber-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Users className="h-12 w-12 text-accent mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 No tienes hijos registrados
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-muted-foreground mb-4">
                 Comienza agregando tu primer hijo para empezar a gestionar sus rutinas
               </p>
               <Link href="/children/new">
-                <Button className="bg-amber-600 hover:bg-amber-700">
+                <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Agregar primer hijo
                 </Button>
@@ -289,137 +290,210 @@ export default function DashboardPage() {
       {/* Estadísticas */}
       {selectedChild && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-100">Rutinas Hoy</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-100" />
+          {/* Tarjeta de Rutinas */}
+          <Card className="border-t-4 border-t-primary hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="text-primary">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg font-bold text-foreground">Rutinas Hoy</CardTitle>
+              </div>
+              <CardDescription className="text-sm text-muted-foreground">
+                Progreso diario de actividades
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedRoutines.length}/{todayRoutines.length}</div>
-              <p className="text-xs text-blue-100">
-                Completadas hoy
-              </p>
-              <div className="mt-2 w-full bg-blue-400 rounded-full h-2">
-                <div 
-                  className="bg-white h-2 rounded-full" 
+            <CardContent className="flex-grow flex flex-col">
+              <div className="mb-4">
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold text-primary">{completedRoutines.length}</span>
+                  <span className="text-xl text-muted-foreground ml-1">/{todayRoutines.length}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Completadas hoy</p>
+              </div>
+              <div className="w-full bg-primary/20 rounded-full h-2 mb-4">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
                   style={{ width: `${todayRoutines.length > 0 ? (completedRoutines.length / todayRoutines.length) * 100 : 0}%` }}
                 ></div>
+              </div>
+              <div className="mt-auto flex items-center justify-between">
+                <Link href="/routines" className="flex-1 mr-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todas
+                  </Button>
+                </Link>
+                <Link href="/routines/new">
+                  <Button size="sm" className="px-3">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-100">Hábitos</CardTitle>
-              <Target className="h-4 w-4 text-green-100" />
+          {/* Tarjeta de Hábitos */}
+          <Card className="border-t-4 border-t-chart-5 hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="text-chart-5">
+                  <Target className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg font-bold text-foreground">Hábitos</CardTitle>
+              </div>
+              <CardDescription className="text-sm text-muted-foreground">
+                Seguimiento de hábitos semanales
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{habits.length}</div>
-              <p className="text-xs text-green-100">
-                Activos esta semana
-              </p>
+            <CardContent className="flex-grow flex flex-col">
+              <div className="mb-4">
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold text-chart-5">{habits.length}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Activos esta semana</p>
+              </div>
+              <div className="flex items-center space-x-2 mb-4">
+                {[...Array(7)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-2 flex-1 rounded-full ${i < Math.min(habits.length, 7) ? 'bg-chart-5' : 'bg-muted'}`}
+                  ></div>
+                ))}
+              </div>
+              <div className="mt-auto flex items-center justify-between">
+                <Link href="/habits" className="flex-1 mr-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todos
+                  </Button>
+                </Link>
+                <Link href="/habits/new">
+                  <Button size="sm" className="px-3">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-purple-100">Recompensas</CardTitle>
-              <Trophy className="h-4 w-4 text-purple-100" />
+          {/* Tarjeta de Recompensas */}
+          <Card className="border-t-4 border-t-secondary hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="text-secondary">
+                  <Trophy className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg font-bold text-foreground">Recompensas</CardTitle>
+              </div>
+              <CardDescription className="text-sm text-muted-foreground">
+                Motivación y logros
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{rewards.length}</div>
-              <p className="text-xs text-purple-100">
-                Disponibles
-              </p>
+            <CardContent className="flex-grow flex flex-col">
+              <div className="mb-4">
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold text-secondary">{rewards.length}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Disponibles para canjear</p>
+              </div>
+              <div className="flex items-center space-x-1 mb-4">
+                {[...Array(3)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i < Math.min(rewards.length, 3) ? 'text-secondary fill-secondary' : 'text-muted'}`}
+                  />
+                ))}
+                {rewards.length > 3 && (
+                  <span className="text-xs text-muted-foreground ml-1">+{rewards.length - 3}</span>
+                )}
+              </div>
+              <div className="mt-auto flex items-center justify-between">
+                <Link href="/rewards" className="flex-1 mr-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todas
+                  </Button>
+                </Link>
+                <Link href="/rewards/new">
+                  <Button size="sm" className="px-3">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white border-0">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-amber-100">Comportamientos</CardTitle>
-              <Star className="h-4 w-4 text-amber-100" />
+          {/* Tarjeta de Comportamientos */}
+          <Card className="border-t-4 border-t-accent hover:shadow-lg transition-shadow duration-300 flex flex-col">
+            <CardHeader>
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="text-accent">
+                  <Star className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg font-bold text-foreground">Comportamientos</CardTitle>
+              </div>
+              <CardDescription className="text-sm text-muted-foreground">
+                Registro de comportamientos
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{behaviors.length}</div>
-              <p className="text-xs text-amber-100">
-                Registrados
-              </p>
+            <CardContent className="flex-grow flex flex-col">
+              <div className="mb-4">
+                <div className="flex items-baseline">
+                  <span className="text-3xl font-bold text-accent">{behaviors.length}</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Registrados esta semana</p>
+              </div>
+              <div className="flex space-x-1 mb-4">
+                <div className="h-8 flex-1 bg-accent/20 rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-accent">Positivos</span>
+                </div>
+                <div className="h-8 flex-1 bg-muted rounded flex items-center justify-center">
+                  <span className="text-xs font-medium text-muted-foreground">Mejora</span>
+                </div>
+              </div>
+              <div className="mt-auto flex items-center justify-between">
+                <Link href="/behaviors" className="flex-1 mr-2">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Ver todos
+                  </Button>
+                </Link>
+                <Link href="/behaviors/new">
+                  <Button size="sm" className="px-3">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Acciones rápidas */}
-      {selectedChild && (
-        <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-indigo-900">
-              <Zap className="h-5 w-5" />
-              Acciones rápidas
-            </CardTitle>
-            <CardDescription className="text-indigo-700">
-              Gestiona rápidamente las actividades de {selectedChild.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link href="/routines/new">
-                <Button variant="outline" className="w-full justify-start border-blue-200 text-blue-700 hover:bg-blue-50">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Nueva Rutina
-                </Button>
-              </Link>
-              <Link href="/habits/new">
-                <Button variant="outline" className="w-full justify-start border-green-200 text-green-700 hover:bg-green-50">
-                  <Target className="h-4 w-4 mr-2" />
-                  Nuevo Hábito
-                </Button>
-              </Link>
-              <Link href="/behaviors/new">
-                <Button variant="outline" className="w-full justify-start border-amber-200 text-amber-700 hover:bg-amber-50">
-                  <Star className="h-4 w-4 mr-2" />
-                  Registro Comportamiento
-                </Button>
-              </Link>
-              <Link href="/rewards/new">
-                <Button variant="outline" className="w-full justify-start border-purple-200 text-purple-700 hover:bg-purple-50">
-                  <Trophy className="h-4 w-4 mr-2" />
-                  Nueva Recompensa
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Rutinas de hoy */}
       {selectedChild && todayRoutines.length > 0 && (
-        <Card className="bg-gradient-to-r from-cyan-50 to-blue-50 border-cyan-200">
+        <Card className="border-t-4 border-t-chart-1">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-cyan-900">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Clock className="h-5 w-5" />
               Rutinas de hoy
             </CardTitle>
-            <CardDescription className="text-cyan-700">
+            <CardDescription className="text-muted-foreground">
               Progreso de las rutinas diarias de {selectedChild.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {todayRoutines.map((routine) => (
-                <div key={routine.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-cyan-100">
+                <div key={routine.id} className="flex items-center justify-between p-3 bg-card rounded-lg border">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-5 h-5 rounded-full border-2 ${completedRoutines.includes(routine.id) ? 'bg-green-500 border-green-500' : 'border-gray-300'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 ${completedRoutines.includes(routine.id) ? 'bg-success border-success' : 'border-muted-foreground'}`}>
                       {completedRoutines.includes(routine.id) && (
-                        <CheckCircle className="h-3 w-3 text-white" />
+                        <CheckCircle className="h-3 w-3 text-success-foreground" />
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{routine.title}</p>
-                      <p className="text-sm text-gray-500">{routine.time}</p>
+                      <p className="font-medium text-foreground">{routine.title}</p>
+                      <p className="text-sm text-muted-foreground">{routine.time}</p>
                     </div>
                   </div>
-                  <Badge variant={completedRoutines.includes(routine.id) ? "default" : "outline"} className={completedRoutines.includes(routine.id) ? "bg-green-100 text-green-800" : ""}>
+                  <Badge variant={completedRoutines.includes(routine.id) ? "default" : "outline"} className={completedRoutines.includes(routine.id) ? "bg-success text-success-foreground" : ""}>
                     {completedRoutines.includes(routine.id) ? "Completada" : "Pendiente"}
                   </Badge>
                 </div>
@@ -431,29 +505,29 @@ export default function DashboardPage() {
 
       {/* Recompensas disponibles */}
       {selectedChild && rewards.length > 0 && (
-        <Card className="bg-gradient-to-r from-pink-50 to-purple-50 border-pink-200">
+        <Card className="border-t-4 border-t-chart-4">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-pink-900">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <Heart className="h-5 w-5" />
               Recompensas disponibles
             </CardTitle>
-            <CardDescription className="text-pink-700">
+            <CardDescription className="text-muted-foreground">
               Motivación para {selectedChild.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {rewards.slice(0, 3).map((reward) => (
-                <div key={reward.id} className="p-4 bg-white rounded-lg border border-pink-100">
+                <div key={reward.id} className="p-4 bg-card rounded-lg border">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">{reward.title}</h4>
+                    <h4 className="font-medium text-foreground">{reward.title}</h4>
                     <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
+                      <Star className="h-4 w-4 text-accent" />
                       <span className="text-sm font-medium">{reward.points_required}</span>
                     </div>
                   </div>
                   {reward.description && (
-                    <p className="text-sm text-gray-600">{reward.description}</p>
+                    <p className="text-sm text-muted-foreground">{reward.description}</p>
                   )}
                 </div>
               ))}
@@ -461,7 +535,7 @@ export default function DashboardPage() {
             {rewards.length > 3 && (
               <div className="mt-4 text-center">
                 <Link href="/rewards">
-                  <Button variant="outline" className="border-pink-200 text-pink-700 hover:bg-pink-50">
+                  <Button variant="outline">
                     Ver todas las recompensas
                   </Button>
                 </Link>

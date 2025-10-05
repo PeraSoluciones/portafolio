@@ -117,7 +117,7 @@ export default function NewRoutinePage() {
   };
 
   const generateTimeSlots = () => {
-    const slots = [];
+    const slots: string[] = [];
     for (let hour = 0; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
         const time = `${hour.toString().padStart(2, '0')}:${minute
