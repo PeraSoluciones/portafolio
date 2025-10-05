@@ -29,7 +29,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/app-store';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';

@@ -9,12 +9,24 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        router.push('/dashboard');
-      } else {
+      try {
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        // Manejar el error AuthSessionMissingError
+        if (error && error.message?.includes('Auth session missing')) {
+          console.log('[DEBUG] Home - Auth session missing, redirecting to login');
+          router.push('/login');
+          return;
+        }
+        
+        if (user) {
+          router.push('/dashboard');
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error('[DEBUG] Home - Error checking auth:', error);
         router.push('/login');
       }
     };
