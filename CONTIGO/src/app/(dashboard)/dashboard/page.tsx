@@ -324,8 +324,9 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 <Link href="/routines/new">
-                  <Button size="sm" className="px-3">
-                    <Plus className="h-4 w-4" />
+                  <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nueva
                   </Button>
                 </Link>
               </div>
@@ -367,15 +368,16 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 <Link href="/habits/new">
-                  <Button size="sm" className="px-3">
-                    <Plus className="h-4 w-4" />
+                  <Button size="sm" className="bg-chart-5 hover:bg-chart-5/90 text-chart-5-foreground transition-colors duration-200">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nuevo
                   </Button>
                 </Link>
               </div>
             </CardContent>
           </Card>
           
-          {/* Tarjeta de Recompensas */}
+          {/* Tarjeta de Recompensas - Combinada con vista previa */}
           <Card className="border-t-4 border-t-secondary hover:shadow-lg transition-shadow duration-300 flex flex-col">
             <CardHeader>
               <div className="flex items-center space-x-3 mb-2">
@@ -392,29 +394,52 @@ export default function DashboardPage() {
               <div className="mb-4">
                 <div className="flex items-baseline">
                   <span className="text-3xl font-bold text-secondary">{rewards.length}</span>
+                  <span className="text-xl text-muted-foreground ml-1">disponibles</span>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Disponibles para canjear</p>
+                <p className="text-xs text-muted-foreground mt-1">Para mantener la motivación</p>
               </div>
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(3)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${i < Math.min(rewards.length, 3) ? 'text-secondary fill-secondary' : 'text-muted'}`}
-                  />
+              
+              {/* Vista previa de recompensas */}
+              <div className="space-y-2 mb-4 flex-grow">
+                {rewards.slice(0, 2).map((reward, index) => (
+                  <div key={reward.id} className="flex items-center justify-between p-2 bg-secondary/10 rounded-lg border border-secondary/20">
+                    <div className="flex items-center space-x-2">
+                      <Award className="h-4 w-4 text-secondary" />
+                      <span className="text-sm font-medium text-foreground truncate max-w-[120px]">{reward.title}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Zap className="h-3 w-3 text-secondary" />
+                      <span className="text-xs font-medium text-secondary">{reward.points_required}</span>
+                    </div>
+                  </div>
                 ))}
-                {rewards.length > 3 && (
-                  <span className="text-xs text-muted-foreground ml-1">+{rewards.length - 3}</span>
-                )}
               </div>
+              
+              {/* Indicador visual de estrellas */}
+              <div className="flex items-center justify-center mb-4">
+                <div className="flex items-center space-x-1">
+                  {[...Array(3)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${i < Math.min(rewards.length, 3) ? 'text-secondary fill-secondary' : 'text-muted'}`}
+                    />
+                  ))}
+                  {rewards.length > 3 && (
+                    <span className="text-xs text-muted-foreground ml-1">+{rewards.length - 3}</span>
+                  )}
+                </div>
+              </div>
+              
               <div className="mt-auto flex items-center justify-between">
-                <Link href="/rewards" className="flex-1 mr-2">
+                <Link href="/resources" className="flex-1 mr-2">
                   <Button variant="outline" size="sm" className="w-full">
                     Ver todas
                   </Button>
                 </Link>
-                <Link href="/rewards/new">
-                  <Button size="sm" className="px-3">
-                    <Plus className="h-4 w-4" />
+                <Link href="/resources">
+                  <Button size="sm" className="bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-colors duration-200">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nueva
                   </Button>
                 </Link>
               </div>
@@ -456,8 +481,9 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 <Link href="/behaviors/new">
-                  <Button size="sm" className="px-3">
-                    <Plus className="h-4 w-4" />
+                  <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground transition-colors duration-200">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nuevo
                   </Button>
                 </Link>
               </div>
@@ -503,47 +529,6 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* Recompensas disponibles */}
-      {selectedChild && rewards.length > 0 && (
-        <Card className="border-t-4 border-t-chart-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Heart className="h-5 w-5" />
-              Recompensas disponibles
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Motivación para {selectedChild.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rewards.slice(0, 3).map((reward) => (
-                <div key={reward.id} className="p-4 bg-card rounded-lg border">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-foreground">{reward.title}</h4>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-accent" />
-                      <span className="text-sm font-medium">{reward.points_required}</span>
-                    </div>
-                  </div>
-                  {reward.description && (
-                    <p className="text-sm text-muted-foreground">{reward.description}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-            {rewards.length > 3 && (
-              <div className="mt-4 text-center">
-                <Link href="/rewards">
-                  <Button variant="outline">
-                    Ver todas las recompensas
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
