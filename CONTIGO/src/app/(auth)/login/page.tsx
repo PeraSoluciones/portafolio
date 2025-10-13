@@ -15,6 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Link from 'next/link';
 import { Loader2, LogIn } from 'lucide-react';
+import { AuthVisual } from '@/components/layout/AuthVisual';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -102,26 +103,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      {/* Columna Izquierda: Visual */}
-      <div className="lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
-        <div className="max-w-md text-center space-y-6">
-          <h1 className="text-4xl lg:text-6xl font-bold tracking-tight">
-            CONTIGO
-          </h1>
-          <p className="text-lg lg:text-xl opacity-90">
-            La mejor herramienta para gestionar las rutinas de tus hijos, fomentando hábitos positivos y un crecimiento feliz.
-          </p>
-          <div className="w-full h-64 lg:h-96 rounded-lg overflow-hidden shadow-2xl">
-            {/* Placeholder de imagen */}
-            <img
-              src="https://res.cloudinary.com/dibmjjktr/image/upload/v1759726309/1759725204_dxy02u.png"
-              alt="Madre e hijo juntos"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-
+      <AuthVisual />
       {/* Columna Derecha: Formulario */}
       <div className="lg:w-1/2 flex items-center justify-center p-8 lg:p-12 bg-gray-50">
         <Card className="w-full max-w-md shadow-xl border-t-4 border-t-indigo-500">
@@ -131,7 +113,7 @@ export default function LoginPage() {
               <span>Bienvenido de nuevo</span>
             </CardTitle>
             <CardDescription className="text-gray-600">
-              Inicia sesión para continuar apoyando a tus hijos
+              Ingresa tus credenciales para acceder a tu panel de control.
             </CardDescription>
           </CardHeader>
           
