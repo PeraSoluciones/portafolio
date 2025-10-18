@@ -14,12 +14,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore } from '@/store/app-store';
-import { Child } from '@/types';
 import { Plus, Edit, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { deleteAvatar } from '@/lib/supabase/storage';
+import { calculateAge } from '@/lib/utils';
 
 export default function ChildrenPage() {
-  const { user, children, setChildren } = useAppStore();
+  const { user, children, setChildren, setSelectedChild } = useAppStore();
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -61,15 +62,18 @@ export default function ChildrenPage() {
     }
 
     const supabase = createClient();
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('children')
       .delete()
-      .eq('id', childId);
+      .eq('id', childId)
+      .select();
 
     if (error) {
       console.error('Error deleting child:', error);
     } else {
       setChildren(children.filter((child) => child.id !== childId));
+      setSelectedChild(children[0] || null);
+      deleteAvatar(data[0].avatar_url);
     }
   };
 
@@ -84,22 +88,6 @@ export default function ChildrenPage() {
       default:
         return type;
     }
-  };
-
-  const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birth.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
   };
 
   if (loading) {

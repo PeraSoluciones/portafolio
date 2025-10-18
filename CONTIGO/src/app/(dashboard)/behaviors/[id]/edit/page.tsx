@@ -25,7 +25,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, Star, Award, Save } from 'lucide-react';
 import Link from 'next/link';
-import { Behavior } from '@/types';
 import { cn } from '@/lib/utils';
 
 export default function EditBehaviorPage() {
@@ -39,6 +38,7 @@ export default function EditBehaviorPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingBehavior, setLoadingBehavior] = useState(true);
+  const [selectedExample, setSelectedExample] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
 
@@ -173,20 +173,28 @@ export default function EditBehaviorPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleExampleClick = (example: string) => {
+    handleInputChange('title', example);
+    setSelectedExample(example);
+    setTimeout(() => setSelectedExample(null), 300);
+  };
+
   const behaviorExamples = {
     POSITIVE: [
-      'Completar tareas escolares',
-      'Compartir juguetes',
+      'Recoger su material cuando termina una actividad',
+      'Realizar sus tareas en clase',
       'Seguir instrucciones',
-      'Ayudar en casa',
+      'Compartir juguetes',
       'Ser amable con otros',
+      'Ayudar en casa',
     ],
     NEGATIVE: [
-      'Interrumpir conversaciones',
+      'Interrumpir o inmiscuirse en conversaciones o juegos',
       'No seguir instrucciones',
+      'Muestra explosiones emocionales',
+      'Agresividad física y verbal',
       'Comportamiento disruptivo',
       'Pérdida de autocontrol',
-      'Agresividad verbal',
     ],
   };
 
@@ -333,21 +341,57 @@ export default function EditBehaviorPage() {
             </div>
 
             {formData.type && (
-              <div className='p-4 bg-gray-50 rounded-lg'>
-                <h4 className='font-medium text-gray-900 mb-2'>
-                  Ejemplos de comportamientos{' '}
-                  {formData.type === 'POSITIVE' ? 'positivos' : 'negativos'}:
-                </h4>
-                <ul className='text-sm text-gray-600 space-y-1'>
+              <div className={`p-4 rounded-lg border ${
+                formData.type === 'POSITIVE'
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <div className='flex items-center space-x-2 mb-3'>
+                  {formData.type === 'POSITIVE' ? (
+                    <div className='p-1 bg-green-100 rounded-full'>
+                      <Award className='h-4 w-4 text-green-600' />
+                    </div>
+                  ) : (
+                    <div className='p-1 bg-red-100 rounded-full'>
+                      <Star className='h-4 w-4 text-red-600' />
+                    </div>
+                  )}
+                  <h4 className='font-medium text-gray-900'>
+                    Ideas inspiradoras para comportamientos{' '}
+                    {formData.type === 'POSITIVE' ? 'positivos' : 'a mejorar'}:
+                  </h4>
+                </div>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
                   {behaviorExamples[
                     formData.type as keyof typeof behaviorExamples
                   ].map((example, index) => (
-                    <li key={index} className='flex items-center space-x-2'>
-                      <span className='text-blue-500'>•</span>
-                      <span>{example}</span>
-                    </li>
+                    <div
+                      key={index}
+                      className={`p-2 rounded-md text-sm cursor-pointer transition-all hover:shadow-sm ${
+                        selectedExample === example
+                          ? formData.type === 'POSITIVE'
+                            ? 'bg-green-200 border-green-400 scale-95'
+                            : 'bg-red-200 border-red-400 scale-95'
+                          : formData.type === 'POSITIVE'
+                          ? 'bg-white border border-green-200 hover:bg-green-100'
+                          : 'bg-white border border-red-200 hover:bg-red-100'
+                      }`}
+                      onClick={() => handleExampleClick(example)}
+                    >
+                      <div className='flex items-center space-x-2'>
+                        {formData.type === 'POSITIVE' ? (
+                          <span className='text-green-500'>✓</span>
+                        ) : (
+                          <span className='text-red-500'>!</span>
+                        )}
+                        <span className='text-gray-700'>{example}</span>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
+                <p className='text-xs text-gray-500 mt-3 italic'>
+                  💡 Haz clic en cualquier ejemplo para usarlo como título
+                </p>
               </div>
             )}
 

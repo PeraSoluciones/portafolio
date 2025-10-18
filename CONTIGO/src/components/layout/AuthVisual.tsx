@@ -47,7 +47,7 @@ export const AuthVisual: React.FC = () => {
         {/* Contenedor de imagen con borde para mejorar el contraste y animación de aparición */}
         <div className='w-full h-64 lg:h-96 rounded-xl overflow-hidden shadow-2xl border-2 border-white/20 backdrop-blur-sm animate-fade-in-up' style={{ animationDelay: '0.9s' }}>
           <img
-            src='https://res.cloudinary.com/dibmjjktr/image/upload/v1759726309/1759725204_dxy02u.png'
+            src='https://res.cloudinary.com/dibmjjktr/image/upload/v1760506701/fondo_login_dpzel0.jpg'
             alt='Madre e hijo juntos'
             className='w-full h-full object-cover transform hover:scale-105 transition-transform duration-500'
           />

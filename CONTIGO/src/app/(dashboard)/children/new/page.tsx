@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -22,19 +22,24 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
-import { Child } from '@/types';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
+import { uploadAvatar } from '@/lib/supabase/storage';
 
 export default function NewChildPage() {
-  const { user } = useAppStore();
+  const { user, addChild } = useAppStore();
   const [formData, setFormData] = useState({
     name: '',
-    age: '',
     birth_date: '',
     adhd_type: '',
   });
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null
+  );
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -66,6 +71,34 @@ export default function NewChildPage() {
     typeColors[formData.adhd_type as keyof typeof typeColors] ||
     typeColors.default;
 
+  const handleAvatarSelect = (file: File | null, blobUrl: string | null) => {
+    // NO liberar el blob anterior aquí - esperar hasta guardar
+    // Esto previene problemas en móviles donde el componente se re-renderiza
+    setSelectedAvatarFile(file);
+    blobUrlRef.current = blobUrl;
+    setAvatarPreviewUrl(blobUrl);
+  };
+
+  const handleAvatarRemove = () => {
+    // Limpiar blob si existe
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
+    setSelectedAvatarFile(null);
+    setAvatarPreviewUrl(null);
+  };
+
+  const handleCancel = () => {
+    // Limpiar blob URL si existe y hay cambios sin guardar
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    router.push('/children');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -79,6 +112,18 @@ export default function NewChildPage() {
 
     try {
       const supabase = createClient();
+      let avatarUrl = '';
+
+      // Si hay un archivo seleccionado, subirlo primero
+      if (selectedAvatarFile) {
+        avatarUrl = await uploadAvatar(selectedAvatarFile, user.id);
+
+        // Limpiar blob URL después de subir exitosamente
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+      }
 
       const { data, error: insertError } = await supabase
         .from('children')
@@ -86,9 +131,9 @@ export default function NewChildPage() {
           {
             parent_id: user.id,
             name: formData.name,
-            age: parseInt(formData.age),
             birth_date: formData.birth_date,
             adhd_type: formData.adhd_type,
+            avatar_url: avatarUrl || null,
           },
         ])
         .select()
@@ -97,6 +142,8 @@ export default function NewChildPage() {
       if (insertError) {
         setError(insertError.message);
         return;
+      } else {
+        addChild(data);
       }
 
       // Redirigir al dashboard
@@ -111,6 +158,16 @@ export default function NewChildPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  if (!user) {
+    return (
+      <div className='flex items-center justify-center h-full'>
+        <p className='text-gray-600'>
+          Debes iniciar sesión para agregar un hijo.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -142,6 +199,13 @@ export default function NewChildPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-6'>
+            <AvatarUpload
+              previewUrl={avatarPreviewUrl}
+              onFileSelect={handleAvatarSelect}
+              onRemove={handleAvatarRemove}
+              name={formData.name}
+            />
+
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div className='space-y-2'>
                 <Label htmlFor='name'>Nombre completo</Label>
@@ -152,19 +216,6 @@ export default function NewChildPage() {
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   required
                   placeholder='Nombre del hijo'
-                />
-              </div>
-              <div className='space-y-2'>
-                <Label htmlFor='age'>Edad</Label>
-                <Input
-                  id='age'
-                  type='number'
-                  value={formData.age}
-                  onChange={(e) => handleInputChange('age', e.target.value)}
-                  required
-                  min='1'
-                  max='17'
-                  placeholder='8'
                 />
               </div>
             </div>
@@ -197,6 +248,26 @@ export default function NewChildPage() {
                   <SelectItem value='COMBINED'>Combinado</SelectItem>
                 </SelectContent>
               </Select>
+
+              <div className='p-4 bg-blue-50 rounded-lg'>
+                <h4 className='font-medium text-blue-900 mb-2'>
+                  Información sobre tipos de TDAH:
+                </h4>
+                <div className='text-sm text-blue-800 space-y-2'>
+                  <div>
+                    <strong>Inatento:</strong> Dificultad para mantener la
+                    atención, sigue instrucciones, organización.
+                  </div>
+                  <div>
+                    <strong>Hiperactivo:</strong> Exceso de movimiento,
+                    dificultad para estar quieto, impulsividad.
+                  </div>
+                  <div>
+                    <strong>Combinado:</strong> Presenta características de
+                    ambos tipos.
+                  </div>
+                </div>
+              </div>
             </div>
 
             {error && (

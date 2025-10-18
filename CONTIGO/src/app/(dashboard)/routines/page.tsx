@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useAppStore } from '@/store/app-store';
-import { Routine, Child } from '@/types';
+import { Routine } from '@/types/index';
 import { Plus, Clock, Calendar, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 

@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/store/app-store';
-import { Habit, HabitRecord, Child } from '@/types';
+import { Habit, HabitRecord } from '@/types/index';
 import {
   Plus,
   Target,

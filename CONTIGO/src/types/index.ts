@@ -1,3 +1,4 @@
+import { type User, type Child } from './database';
 export * from './database';
 
 export interface AppState {

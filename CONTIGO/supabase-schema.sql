@@ -13,7 +13,6 @@ CREATE TABLE children (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   parent_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  age INTEGER NOT NULL CHECK (age > 0 AND age < 18),
   birth_date DATE NOT NULL,
   avatar_url TEXT,
   adhd_type TEXT NOT NULL CHECK (adhd_type IN ('INATTENTIVE', 'HYPERACTIVE', 'COMBINED')),

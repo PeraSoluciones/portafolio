@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,9 @@ import {
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, User, Save } from 'lucide-react';
 import Link from 'next/link';
-import { Child } from '@/types';
 import { cn } from '@/lib/utils';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
+import { uploadAvatar, deleteAvatar } from '@/lib/supabase/storage';
 
 const adhdTypes = [
   {
@@ -46,16 +47,22 @@ const adhdTypes = [
 ];
 
 export default function EditChildPage() {
-  const { user } = useAppStore();
+  const { user, setSelectedChild } = useAppStore();
   const [formData, setFormData] = useState({
     name: '',
-    age: '',
     birth_date: '',
     adhd_type: '',
+    avatar_url: '',
   });
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
+    null
+  );
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingChild, setLoadingChild] = useState(true);
+  const [childLoaded, setChildLoaded] = useState(false);
   const router = useRouter();
   const params = useParams();
 
@@ -86,19 +93,8 @@ export default function EditChildPage() {
     typeColors[formData.adhd_type as keyof typeof typeColors] ||
     typeColors.default;
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-
-    if (params.id) {
-      fetchChild();
-    }
-  }, [user, params.id, router]);
-
-  const fetchChild = async () => {
-    if (!params.id) return;
+  const fetchChild = useCallback(async () => {
+    if (!params.id || childLoaded) return;
 
     setLoadingChild(true);
     const supabase = createClient();
@@ -110,7 +106,6 @@ export default function EditChildPage() {
       .single();
 
     if (error) {
-      console.error('Error fetching child:', error);
       setError('No se encontró el hijo solicitado');
       setLoadingChild(false);
       return;
@@ -119,14 +114,32 @@ export default function EditChildPage() {
     if (data) {
       setFormData({
         name: data.name,
-        age: data.age.toString(),
         birth_date: data.birth_date,
         adhd_type: data.adhd_type,
+        avatar_url: data.avatar_url || '',
       });
+      // Establecer preview inicial si hay avatar
+      if (data.avatar_url) {
+        setAvatarPreviewUrl(data.avatar_url);
+      }
+
+      setChildLoaded(true);
     }
 
     setLoadingChild(false);
-  };
+  }, [params.id, childLoaded]);
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    // Si existe el id del hijo y no se ha seleccionado un avatar
+    if (params.id && !childLoaded) {
+      fetchChild();
+    }
+  }, [user, params.id, childLoaded, fetchChild, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,14 +160,51 @@ export default function EditChildPage() {
 
     try {
       const supabase = createClient();
+      let avatarUrl = formData.avatar_url;
 
-      const { error: updateError } = await supabase
+      // Si hay un nuevo archivo seleccionado, subirlo
+      if (selectedAvatarFile) {
+        // Subir nuevo avatar primero
+        const newAvatarUrl = await uploadAvatar(selectedAvatarFile, user.id);
+
+        // Solo eliminar el avatar anterior si la subida fue exitosa
+        // y si existe un avatar anterior diferente
+        if (formData.avatar_url && formData.avatar_url !== newAvatarUrl) {
+          try {
+            await deleteAvatar(formData.avatar_url);
+          } catch (error) {
+            console.error('Error al eliminar avatar anterior:', error);
+            // No fallar la operación si no se puede eliminar el avatar anterior
+          }
+        }
+
+        avatarUrl = newAvatarUrl;
+
+        // Limpiar blob URL después de subir exitosamente
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+      } else if (avatarPreviewUrl === null && formData.avatar_url) {
+        // Si se removió el avatar (previewUrl es null pero había avatar anterior)
+        try {
+          await deleteAvatar(formData.avatar_url);
+        } catch (error) {
+          console.error('Error al eliminar avatar:', error);
+        }
+        avatarUrl = '';
+      } else {
+        // Mantener el avatar actual si no cambió
+        avatarUrl = formData.avatar_url;
+      }
+
+      const { data: updateData, error: updateError } = await supabase
         .from('children')
         .update({
           name: formData.name,
-          age: parseInt(formData.age),
           birth_date: formData.birth_date,
           adhd_type: formData.adhd_type,
+          avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id);
@@ -162,9 +212,10 @@ export default function EditChildPage() {
       if (updateError) {
         setError(updateError.message);
         return;
+      } else {
+        setSelectedChild(updateData);
       }
 
-      // Redirigir a la página de hijos
       router.push('/children');
     } catch (err) {
       setError('Ocurrió un error inesperado');
@@ -175,6 +226,38 @@ export default function EditChildPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAvatarSelect = (file: File | null, blobUrl: string | null) => {
+    // Limpiar blob anterior solo si hay uno diferente
+    if (blobUrlRef.current && blobUrlRef.current !== blobUrl) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+
+    setSelectedAvatarFile(file);
+    blobUrlRef.current = blobUrl;
+    setAvatarPreviewUrl(blobUrl);
+  };
+
+  const handleCancel = () => {
+    // Limpiar blob URL si existe y hay cambios sin guardar
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    router.push('/children');
+  };
+
+  const handleAvatarRemove = () => {
+    // Limpiar blob si existe
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
+    setSelectedAvatarFile(null);
+    setAvatarPreviewUrl(null);
+    setFormData((prev) => ({ ...prev, avatar_url: '' }));
   };
 
   if (!user) {
@@ -238,6 +321,13 @@ export default function EditChildPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-6'>
+            <AvatarUpload
+              previewUrl={avatarPreviewUrl}
+              onFileSelect={handleAvatarSelect}
+              onRemove={handleAvatarRemove}
+              name={formData.name}
+            />
+
             <div className='space-y-2'>
               <Label htmlFor='name'>Nombre completo</Label>
               <Input
@@ -251,20 +341,6 @@ export default function EditChildPage() {
             </div>
 
             <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='age'>Edad</Label>
-                <Input
-                  id='age'
-                  type='number'
-                  value={formData.age}
-                  onChange={(e) => handleInputChange('age', e.target.value)}
-                  required
-                  min='1'
-                  max='17'
-                  placeholder='8'
-                />
-              </div>
-
               <div className='space-y-2'>
                 <Label htmlFor='birth_date'>Fecha de nacimiento</Label>
                 <Input
@@ -301,24 +377,24 @@ export default function EditChildPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
 
-            <div className='p-4 bg-blue-50 rounded-lg'>
-              <h4 className='font-medium text-blue-900 mb-2'>
-                Información sobre tipos de TDAH:
-              </h4>
-              <div className='text-sm text-blue-800 space-y-2'>
-                <div>
-                  <strong>Inatento:</strong> Dificultad para mantener la
-                  atención, sigue instrucciones, organización.
-                </div>
-                <div>
-                  <strong>Hiperactivo:</strong> Exceso de movimiento, dificultad
-                  para estar quieto, impulsividad.
-                </div>
-                <div>
-                  <strong>Combinado:</strong> Presenta características de ambos
-                  tipos.
+              <div className='p-4 bg-blue-50 rounded-lg'>
+                <h4 className='font-medium text-blue-900 mb-2'>
+                  Información sobre tipos de TDAH:
+                </h4>
+                <div className='text-sm text-blue-800 space-y-2'>
+                  <div>
+                    <strong>Inatento:</strong> Dificultad para mantener la
+                    atención, sigue instrucciones, organización.
+                  </div>
+                  <div>
+                    <strong>Hiperactivo:</strong> Exceso de movimiento,
+                    dificultad para estar quieto, impulsividad.
+                  </div>
+                  <div>
+                    <strong>Combinado:</strong> Presenta características de
+                    ambos tipos.
+                  </div>
                 </div>
               </div>
             </div>
@@ -331,7 +407,9 @@ export default function EditChildPage() {
 
             <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/children'>
-                <Button variant='outline'>Cancelar</Button>
+                <Button variant='outline' onClick={handleCancel}>
+                  Cancelar
+                </Button>
               </Link>
               <Button
                 type='submit'

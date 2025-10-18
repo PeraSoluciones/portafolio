@@ -23,9 +23,8 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Target, Save } from 'lucide-react';
+import { ArrowLeft, Target, Save, Award } from 'lucide-react';
 import Link from 'next/link';
-import { Habit } from '@/types';
 import { cn } from '@/lib/utils';
 
 const habitCategories = [
@@ -54,6 +53,11 @@ const habitCategories = [
     label: 'Social',
     description: 'Interacción social y habilidades',
   },
+  {
+    value: 'ORGANIZATION',
+    label: 'Organización',
+    description: 'Hábitos de orden y planificación',
+  },
 ];
 
 export default function EditHabitPage() {
@@ -68,6 +72,7 @@ export default function EditHabitPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingHabit, setLoadingHabit] = useState(true);
+  const [selectedExample, setSelectedExample] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
 
@@ -96,6 +101,11 @@ export default function EditHabitPage() {
       border: 'border-t-pink-500',
       text: 'text-pink-600',
       button: 'bg-pink-600 hover:bg-pink-700',
+    },
+    ORGANIZATION: {
+      border: 'border-t-indigo-500',
+      text: 'text-indigo-600',
+      button: 'bg-indigo-600 hover:bg-indigo-700',
     },
     default: {
       border: 'border-t-secondary',
@@ -220,6 +230,12 @@ export default function EditHabitPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleExampleClick = (example: string) => {
+    handleInputChange('title', example);
+    setSelectedExample(example);
+    setTimeout(() => setSelectedExample(null), 300);
+  };
+
   const getUnitSuggestions = (category: string) => {
     switch (category) {
       case 'SLEEP':
@@ -232,6 +248,8 @@ export default function EditHabitPage() {
         return ['veces', 'minutos'];
       case 'SOCIAL':
         return ['veces', 'minutos', 'actividades'];
+      case 'ORGANIZATION':
+        return ['minutos', 'veces', 'tareas'];
       default:
         return ['veces'];
     }
@@ -239,19 +257,19 @@ export default function EditHabitPage() {
 
   const habitExamples = {
     SLEEP: [
-      'Dormir 8 horas diarias',
-      'Tener una rutina de sueño',
-      'Leer antes de dormir',
+      'Mantener un horario regular para acostarse',
+      'Asegurarse de dormir 8 horas diarias',
+      'Tener una rutina relajante antes de dormir',
     ],
     NUTRITION: [
-      'Comer 5 porciones de frutas',
-      'Tomar 8 vasos de agua',
-      'Desayunar todos los días',
+      'Mantener una dieta equilibrada',
+      'Comer 5 porciones de frutas y verduras',
+      'Tomar suficiente agua durante el día',
     ],
     EXERCISE: [
-      'Hacer 30 minutos de ejercicio',
-      'Practicar deporte 3 veces por semana',
-      'Caminar 10,000 pasos diarios',
+      'Realizar ejercicio regularmente',
+      'Hacer 30 minutos de actividad física diaria',
+      'Practicar deportes 3 veces por semana',
     ],
     HYGIENE: [
       'Lavarse los dientes 2 veces al día',
@@ -259,9 +277,16 @@ export default function EditHabitPage() {
       'Lavarse las manos antes de comer',
     ],
     SOCIAL: [
-      'Saludar a nuevas personas',
-      'Compartir juguetes',
+      'Practicar habilidades sociales (saludar, escuchar)',
+      'Compartir con compañeros',
       'Participar en actividades grupales',
+    ],
+    ORGANIZATION: [
+      'Ordenar la mesa de trabajo 5 minutos al día',
+      'Revisar la agenda escolar diariamente',
+      'Usar técnicas de estudio (subrayado, esquemas)',
+      'Practicar autoinstrucciones para tareas',
+      'Seguir pasos para resolver problemas',
     ],
   };
 
@@ -413,24 +438,86 @@ export default function EditHabitPage() {
             </div>
 
             {formData.category && (
-              <div className='p-4 bg-gray-50 rounded-lg'>
-                <h4 className='font-medium text-gray-900 mb-2'>
-                  Ejemplos de hábitos de{' '}
-                  {habitCategories
-                    .find((c) => c.value === formData.category)
-                    ?.label.toLowerCase()}
-                  :
-                </h4>
-                <ul className='text-sm text-gray-600 space-y-1'>
+              <div className={`p-4 rounded-lg border ${
+                formData.category === 'SLEEP' ? 'bg-blue-50 border-blue-200' :
+                formData.category === 'NUTRITION' ? 'bg-green-50 border-green-200' :
+                formData.category === 'EXERCISE' ? 'bg-orange-50 border-orange-200' :
+                formData.category === 'HYGIENE' ? 'bg-purple-50 border-purple-200' :
+                formData.category === 'SOCIAL' ? 'bg-pink-50 border-pink-200' :
+                formData.category === 'ORGANIZATION' ? 'bg-indigo-50 border-indigo-200' :
+                'bg-gray-50 border-gray-200'
+              }`}>
+                <div className='flex items-center space-x-2 mb-3'>
+                  <div className={`p-1 rounded-full ${
+                    formData.category === 'SLEEP' ? 'bg-blue-100' :
+                    formData.category === 'NUTRITION' ? 'bg-green-100' :
+                    formData.category === 'EXERCISE' ? 'bg-orange-100' :
+                    formData.category === 'HYGIENE' ? 'bg-purple-100' :
+                    formData.category === 'SOCIAL' ? 'bg-pink-100' :
+                    formData.category === 'ORGANIZATION' ? 'bg-indigo-100' :
+                    'bg-gray-100'
+                  }`}>
+                    <Award className={`h-4 w-4 ${
+                      formData.category === 'SLEEP' ? 'text-blue-600' :
+                      formData.category === 'NUTRITION' ? 'text-green-600' :
+                      formData.category === 'EXERCISE' ? 'text-orange-600' :
+                      formData.category === 'HYGIENE' ? 'text-purple-600' :
+                      formData.category === 'SOCIAL' ? 'text-pink-600' :
+                      formData.category === 'ORGANIZATION' ? 'text-indigo-600' :
+                      'text-gray-600'
+                    }`} />
+                  </div>
+                  <h4 className='font-medium text-gray-900'>
+                    Ideas inspiradoras para hábitos de{' '}
+                    {habitCategories
+                      .find((c) => c.value === formData.category)
+                      ?.label.toLowerCase()}
+                    :
+                  </h4>
+                </div>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
                   {habitExamples[
                     formData.category as keyof typeof habitExamples
                   ].map((example, index) => (
-                    <li key={index} className='flex items-center space-x-2'>
-                      <span className='text-green-500'>•</span>
-                      <span>{example}</span>
-                    </li>
+                    <div
+                      key={index}
+                      className={`p-2 rounded-md text-sm cursor-pointer transition-all hover:shadow-sm ${
+                        selectedExample === example
+                          ? formData.category === 'SLEEP' ? 'bg-blue-200 border-blue-400 scale-95' :
+                            formData.category === 'NUTRITION' ? 'bg-green-200 border-green-400 scale-95' :
+                            formData.category === 'EXERCISE' ? 'bg-orange-200 border-orange-400 scale-95' :
+                            formData.category === 'HYGIENE' ? 'bg-purple-200 border-purple-400 scale-95' :
+                            formData.category === 'SOCIAL' ? 'bg-pink-200 border-pink-400 scale-95' :
+                            formData.category === 'ORGANIZATION' ? 'bg-indigo-200 border-indigo-400 scale-95' :
+                            'bg-gray-200 border-gray-400 scale-95'
+                          : formData.category === 'SLEEP' ? 'bg-white border border-blue-200 hover:bg-blue-100' :
+                            formData.category === 'NUTRITION' ? 'bg-white border border-green-200 hover:bg-green-100' :
+                            formData.category === 'EXERCISE' ? 'bg-white border border-orange-200 hover:bg-orange-100' :
+                            formData.category === 'HYGIENE' ? 'bg-white border border-purple-200 hover:bg-purple-100' :
+                            formData.category === 'SOCIAL' ? 'bg-white border border-pink-200 hover:bg-pink-100' :
+                            formData.category === 'ORGANIZATION' ? 'bg-white border border-indigo-200 hover:bg-indigo-100' :
+                            'bg-white border border-gray-200 hover:bg-gray-100'
+                      }`}
+                      onClick={() => handleExampleClick(example)}
+                    >
+                      <div className='flex items-center space-x-2'>
+                        <span className={`${
+                          formData.category === 'SLEEP' ? 'text-blue-500' :
+                          formData.category === 'NUTRITION' ? 'text-green-500' :
+                          formData.category === 'EXERCISE' ? 'text-orange-500' :
+                          formData.category === 'HYGIENE' ? 'text-purple-500' :
+                          formData.category === 'SOCIAL' ? 'text-pink-500' :
+                          formData.category === 'ORGANIZATION' ? 'text-indigo-500' :
+                          'text-gray-500'
+                        }`}>✓</span>
+                        <span className='text-gray-700'>{example}</span>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
+                <p className='text-xs text-gray-500 mt-3 italic'>
+                  💡 Haz clic en cualquier ejemplo para usarlo como título
+                </p>
               </div>
             )}
 

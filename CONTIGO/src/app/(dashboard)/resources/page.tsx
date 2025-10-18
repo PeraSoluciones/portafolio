@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/store/app-store';
-import { Resource } from '@/types';
+import { Resource } from '@/types/index';
 import { BookOpen, Video, Lightbulb, Calendar, User } from 'lucide-react';
 
 export default function ResourcesPage() {

@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/app-store';
-import { Behavior, BehaviorRecord, Child } from '@/types';
+import { Behavior, BehaviorRecord } from '@/types/index';
 import {
   Plus,
   Star,

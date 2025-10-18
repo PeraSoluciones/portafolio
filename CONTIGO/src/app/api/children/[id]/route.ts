@@ -46,15 +46,15 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, age, birth_date, adhd_type } = body;
+    const { name, birth_date, adhd_type, avatar_url } = body;
 
     const { data, error } = await supabase
       .from('children')
       .update({
         name,
-        age: age ? parseInt(age) : undefined,
         birth_date,
         adhd_type,
+        avatar_url: avatar_url || null,
       })
       .eq('id', params.id)
       .eq('parent_id', user.id)

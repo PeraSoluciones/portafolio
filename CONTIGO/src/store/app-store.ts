@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { User, Child, AppState } from '@/types';
+import { User, Child } from '@/types/index';
 
-interface AppStore extends AppState {
+interface AppStore {
+  user: User | null;
+  children: Child[];
+  selectedChild: Child | null;
+  isLoading: boolean;
+  error: string | null;
   setUser: (user: User | null) => void;
   setChildren: (children: Child[]) => void;
   setSelectedChild: (child: Child | null) => void;

@@ -16,7 +16,7 @@ export function AuthProvider({ session, children }: AuthProviderProps) {
   // Función para cargar los hijos del usuario
   const fetchChildren = async (userId: string) => {
     try {
-      const response = await fetch('/api/children/user', {
+      const response = await fetch('/api/children', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { createClient } from '@/lib/supabase/client';
-import { Behavior } from '@/types';
+import { Behavior } from '@/types/index';
 import { Calendar, Save, X } from 'lucide-react';
 
 interface BehaviorRecordModalProps {

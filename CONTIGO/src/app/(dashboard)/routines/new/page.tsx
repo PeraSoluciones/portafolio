@@ -24,9 +24,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
-import { Routine } from '@/types';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, Award } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const daysOfWeek = [
   { id: 'LUN', label: 'Lunes' },
@@ -48,6 +48,7 @@ export default function NewRoutinePage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedExample, setSelectedExample] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +110,12 @@ export default function NewRoutinePage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleExampleClick = (example: string) => {
+    handleInputChange('title', example);
+    setSelectedExample(example);
+    setTimeout(() => setSelectedExample(null), 300);
+  };
+
   const handleDayChange = (day: string, checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
@@ -128,6 +135,14 @@ export default function NewRoutinePage() {
     }
     return slots;
   };
+
+  const routineExamples = [
+    'Organizar la ropa y mochila la noche anterior',
+    'Rutina de tareas (con pausas activas)',
+    'Preparación para dormir (baño, lectura)',
+    'Desayuno en familia sin distracciones',
+    'Tiempo de juego estructurado',
+  ];
 
   if (!user) {
     router.push('/login');
@@ -224,6 +239,38 @@ export default function NewRoutinePage() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className='p-4 bg-secondary/10 rounded-lg border border-secondary/20'>
+              <div className='flex items-center space-x-2 mb-3'>
+                <div className='p-1 bg-secondary/20 rounded-full'>
+                  <Award className='h-4 w-4 text-secondary' />
+                </div>
+                <h4 className='font-medium text-gray-900'>
+                  Ejemplos de rutinas para TDAH:
+                </h4>
+              </div>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+                {routineExamples.map((example, index) => (
+                  <div
+                    key={index}
+                    className={`p-2 rounded-md text-sm cursor-pointer transition-all hover:shadow-sm ${
+                      selectedExample === example
+                        ? 'bg-secondary/30 border-secondary/50 scale-95'
+                        : 'bg-white border border-secondary/20 hover:bg-secondary/10'
+                    }`}
+                    onClick={() => handleExampleClick(example)}
+                  >
+                    <div className='flex items-center space-x-2'>
+                      <span className='text-secondary'>⏰</span>
+                      <span className='text-gray-700'>{example}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className='text-xs text-gray-500 mt-3 italic'>
+                💡 Haz clic en cualquier ejemplo para usarlo como título
+              </p>
             </div>
 
             {error && (

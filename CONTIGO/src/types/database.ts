@@ -11,7 +11,6 @@ export interface Child {
   id: string;
   parent_id: string;
   name: string;
-  age: number;
   birth_date: string;
   avatar_url?: string;
   adhd_type: 'INATTENTIVE' | 'HYPERACTIVE' | 'COMBINED';

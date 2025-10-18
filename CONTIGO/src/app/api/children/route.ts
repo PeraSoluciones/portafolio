@@ -39,9 +39,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, age, birth_date, adhd_type } = body;
+    const { name, birth_date, adhd_type, avatar_url } = body;
 
-    if (!name || !age || !birth_date || !adhd_type) {
+    if (!name || !birth_date || !adhd_type) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
         {
           parent_id: user.id,
           name,
-          age: parseInt(age),
           birth_date,
           adhd_type,
+          avatar_url: avatar_url || null,
         },
       ])
       .select()
