@@ -21,11 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, Target, Award } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { habitSchema, type HabitFormValues } from '@/lib/validations/habit';
+import { useToast } from '@/hooks/use-toast';
 
 const habitCategories = [
   {
@@ -62,6 +63,7 @@ const habitCategories = [
 
 export default function NewHabitPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -69,7 +71,9 @@ export default function NewHabitPage() {
     target_frequency: '',
     unit: '',
   });
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof HabitFormValues, string>>
+  >({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
   const router = useRouter();
@@ -119,47 +123,104 @@ export default function NewHabitPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setFieldErrors({});
 
     if (!user) {
-      setError('Debes iniciar sesión para crear un hábito');
+      toast({
+        title: 'Error de autenticación',
+        description: 'Debes iniciar sesión para crear un hábito',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
     if (!selectedChild) {
-      setError('Debes seleccionar un hijo');
+      toast({
+        title: 'Error de selección',
+        description: 'Debes seleccionar un hijo',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validar con Zod
+    const validationResult = habitSchema.safeParse(formData);
+
+    if (!validationResult.success) {
+      // Extraer errores de validación por campo
+      const errors: Partial<Record<keyof HabitFormValues, string>> = {};
+      validationResult.error.issues.forEach((issue) => {
+        const fieldName = issue.path[0] as keyof HabitFormValues;
+        errors[fieldName] = issue.message;
+      });
+
+      setFieldErrors(errors);
+
+      toast({
+        title: 'Error de validación',
+        description: 'Por favor, corrige los errores en el formulario',
+        variant: 'destructive',
+      });
+
       setIsLoading(false);
       return;
     }
 
     try {
       const supabase = createClient();
+      const validatedData = validationResult.data;
 
       const { data, error: insertError } = await supabase
         .from('habits')
         .insert([
           {
             child_id: selectedChild.id,
-            title: formData.title,
-            description: formData.description,
-            category: formData.category,
-            target_frequency: parseInt(formData.target_frequency),
-            unit: formData.unit,
+            title: validatedData.title,
+            description: validatedData.description,
+            category: validatedData.category,
+            target_frequency: validatedData.target_frequency,
+            unit: validatedData.unit,
           },
         ])
         .select()
         .single();
 
       if (insertError) {
-        setError(insertError.message);
+        toast({
+          title: 'Error al crear el hábito',
+          description: insertError.message,
+          variant: 'destructive',
+        });
         return;
       }
+
+      // Notificación de éxito con color según la categoría
+      const categoryColors = {
+        SLEEP: 'bg-blue-500',
+        NUTRITION: 'bg-green-500',
+        EXERCISE: 'bg-orange-500',
+        HYGIENE: 'bg-purple-500',
+        SOCIAL: 'bg-pink-500',
+        ORGANIZATION: 'bg-indigo-500',
+      };
+
+      toast({
+        title: '¡Hábito creado exitosamente!',
+        description: `"${validatedData.title}" ha sido agregado a la lista de hábitos.`,
+        variant: 'success',
+      });
 
       // Redirigir a la página de hábitos
       router.push('/habits');
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      toast({
+        title: 'Error inesperado',
+        description:
+          'Ocurrió un error al crear el hábito. Por favor, inténtalo nuevamente.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -266,7 +327,11 @@ export default function NewHabitPage() {
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 required
                 placeholder='Ej: Dormir 8 horas, Comer frutas, Hacer ejercicio'
+                className={fieldErrors.title ? 'border-red-500' : ''}
               />
+              {fieldErrors.title && (
+                <p className='text-sm text-red-500'>{fieldErrors.title}</p>
+              )}
             </div>
 
             <div className='space-y-2'>
@@ -288,7 +353,9 @@ export default function NewHabitPage() {
                 value={formData.category}
                 onValueChange={(value) => handleInputChange('category', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  className={fieldErrors.category ? 'border-red-500' : ''}
+                >
                   <SelectValue placeholder='Selecciona una categoría' />
                 </SelectTrigger>
                 <SelectContent>
@@ -304,6 +371,9 @@ export default function NewHabitPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.category && (
+                <p className='text-sm text-red-500'>{fieldErrors.category}</p>
+              )}
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -319,7 +389,15 @@ export default function NewHabitPage() {
                   required
                   min='1'
                   placeholder='8'
+                  className={
+                    fieldErrors.target_frequency ? 'border-red-500' : ''
+                  }
                 />
+                {fieldErrors.target_frequency && (
+                  <p className='text-sm text-red-500'>
+                    {fieldErrors.target_frequency}
+                  </p>
+                )}
               </div>
               <div className='space-y-2'>
                 <Label htmlFor='unit'>Unidad de medida</Label>
@@ -330,7 +408,11 @@ export default function NewHabitPage() {
                   onChange={(e) => handleInputChange('unit', e.target.value)}
                   required
                   placeholder='horas, veces, porciones'
+                  className={fieldErrors.unit ? 'border-red-500' : ''}
                 />
+                {fieldErrors.unit && (
+                  <p className='text-sm text-red-500'>{fieldErrors.unit}</p>
+                )}
                 {formData.category && (
                   <div className='text-xs text-gray-500 mt-1'>
                     Sugerencias:{' '}
@@ -341,34 +423,58 @@ export default function NewHabitPage() {
             </div>
 
             {formData.category && (
-              <div className={`p-4 rounded-lg border ${
-                formData.category === 'SLEEP' ? 'bg-blue-50 border-blue-200' :
-                formData.category === 'NUTRITION' ? 'bg-green-50 border-green-200' :
-                formData.category === 'EXERCISE' ? 'bg-orange-50 border-orange-200' :
-                formData.category === 'HYGIENE' ? 'bg-purple-50 border-purple-200' :
-                formData.category === 'SOCIAL' ? 'bg-pink-50 border-pink-200' :
-                formData.category === 'ORGANIZATION' ? 'bg-indigo-50 border-indigo-200' :
-                'bg-gray-50 border-gray-200'
-              }`}>
+              <div
+                className={`p-4 rounded-lg border ${
+                  formData.category === 'SLEEP'
+                    ? 'bg-blue-50 border-blue-200'
+                    : formData.category === 'NUTRITION'
+                    ? 'bg-green-50 border-green-200'
+                    : formData.category === 'EXERCISE'
+                    ? 'bg-orange-50 border-orange-200'
+                    : formData.category === 'HYGIENE'
+                    ? 'bg-purple-50 border-purple-200'
+                    : formData.category === 'SOCIAL'
+                    ? 'bg-pink-50 border-pink-200'
+                    : formData.category === 'ORGANIZATION'
+                    ? 'bg-indigo-50 border-indigo-200'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
                 <div className='flex items-center space-x-2 mb-3'>
-                  <div className={`p-1 rounded-full ${
-                    formData.category === 'SLEEP' ? 'bg-blue-100' :
-                    formData.category === 'NUTRITION' ? 'bg-green-100' :
-                    formData.category === 'EXERCISE' ? 'bg-orange-100' :
-                    formData.category === 'HYGIENE' ? 'bg-purple-100' :
-                    formData.category === 'SOCIAL' ? 'bg-pink-100' :
-                    formData.category === 'ORGANIZATION' ? 'bg-indigo-100' :
-                    'bg-gray-100'
-                  }`}>
-                    <Award className={`h-4 w-4 ${
-                      formData.category === 'SLEEP' ? 'text-blue-600' :
-                      formData.category === 'NUTRITION' ? 'text-green-600' :
-                      formData.category === 'EXERCISE' ? 'text-orange-600' :
-                      formData.category === 'HYGIENE' ? 'text-purple-600' :
-                      formData.category === 'SOCIAL' ? 'text-pink-600' :
-                      formData.category === 'ORGANIZATION' ? 'text-indigo-600' :
-                      'text-gray-600'
-                    }`} />
+                  <div
+                    className={`p-1 rounded-full ${
+                      formData.category === 'SLEEP'
+                        ? 'bg-blue-100'
+                        : formData.category === 'NUTRITION'
+                        ? 'bg-green-100'
+                        : formData.category === 'EXERCISE'
+                        ? 'bg-orange-100'
+                        : formData.category === 'HYGIENE'
+                        ? 'bg-purple-100'
+                        : formData.category === 'SOCIAL'
+                        ? 'bg-pink-100'
+                        : formData.category === 'ORGANIZATION'
+                        ? 'bg-indigo-100'
+                        : 'bg-gray-100'
+                    }`}
+                  >
+                    <Award
+                      className={`h-4 w-4 ${
+                        formData.category === 'SLEEP'
+                          ? 'text-blue-600'
+                          : formData.category === 'NUTRITION'
+                          ? 'text-green-600'
+                          : formData.category === 'EXERCISE'
+                          ? 'text-orange-600'
+                          : formData.category === 'HYGIENE'
+                          ? 'text-purple-600'
+                          : formData.category === 'SOCIAL'
+                          ? 'text-pink-600'
+                          : formData.category === 'ORGANIZATION'
+                          ? 'text-indigo-600'
+                          : 'text-gray-600'
+                      }`}
+                    />
                   </div>
                   <h4 className='font-medium text-gray-900'>
                     Ideas inspiradoras para hábitos de{' '}
@@ -386,33 +492,55 @@ export default function NewHabitPage() {
                       key={index}
                       className={`p-2 rounded-md text-sm cursor-pointer transition-all hover:shadow-sm ${
                         selectedExample === example
-                          ? formData.category === 'SLEEP' ? 'bg-blue-200 border-blue-400 scale-95' :
-                            formData.category === 'NUTRITION' ? 'bg-green-200 border-green-400 scale-95' :
-                            formData.category === 'EXERCISE' ? 'bg-orange-200 border-orange-400 scale-95' :
-                            formData.category === 'HYGIENE' ? 'bg-purple-200 border-purple-400 scale-95' :
-                            formData.category === 'SOCIAL' ? 'bg-pink-200 border-pink-400 scale-95' :
-                            formData.category === 'ORGANIZATION' ? 'bg-indigo-200 border-indigo-400 scale-95' :
-                            'bg-gray-200 border-gray-400 scale-95'
-                          : formData.category === 'SLEEP' ? 'bg-white border border-blue-200 hover:bg-blue-100' :
-                            formData.category === 'NUTRITION' ? 'bg-white border border-green-200 hover:bg-green-100' :
-                            formData.category === 'EXERCISE' ? 'bg-white border border-orange-200 hover:bg-orange-100' :
-                            formData.category === 'HYGIENE' ? 'bg-white border border-purple-200 hover:bg-purple-100' :
-                            formData.category === 'SOCIAL' ? 'bg-white border border-pink-200 hover:bg-pink-100' :
-                            formData.category === 'ORGANIZATION' ? 'bg-white border border-indigo-200 hover:bg-indigo-100' :
-                            'bg-white border border-gray-200 hover:bg-gray-100'
+                          ? formData.category === 'SLEEP'
+                            ? 'bg-blue-200 border-blue-400 scale-95'
+                            : formData.category === 'NUTRITION'
+                            ? 'bg-green-200 border-green-400 scale-95'
+                            : formData.category === 'EXERCISE'
+                            ? 'bg-orange-200 border-orange-400 scale-95'
+                            : formData.category === 'HYGIENE'
+                            ? 'bg-purple-200 border-purple-400 scale-95'
+                            : formData.category === 'SOCIAL'
+                            ? 'bg-pink-200 border-pink-400 scale-95'
+                            : formData.category === 'ORGANIZATION'
+                            ? 'bg-indigo-200 border-indigo-400 scale-95'
+                            : 'bg-gray-200 border-gray-400 scale-95'
+                          : formData.category === 'SLEEP'
+                          ? 'bg-white border border-blue-200 hover:bg-blue-100'
+                          : formData.category === 'NUTRITION'
+                          ? 'bg-white border border-green-200 hover:bg-green-100'
+                          : formData.category === 'EXERCISE'
+                          ? 'bg-white border border-orange-200 hover:bg-orange-100'
+                          : formData.category === 'HYGIENE'
+                          ? 'bg-white border border-purple-200 hover:bg-purple-100'
+                          : formData.category === 'SOCIAL'
+                          ? 'bg-white border border-pink-200 hover:bg-pink-100'
+                          : formData.category === 'ORGANIZATION'
+                          ? 'bg-white border border-indigo-200 hover:bg-indigo-100'
+                          : 'bg-white border border-gray-200 hover:bg-gray-100'
                       }`}
                       onClick={() => handleExampleClick(example)}
                     >
                       <div className='flex items-center space-x-2'>
-                        <span className={`${
-                          formData.category === 'SLEEP' ? 'text-blue-500' :
-                          formData.category === 'NUTRITION' ? 'text-green-500' :
-                          formData.category === 'EXERCISE' ? 'text-orange-500' :
-                          formData.category === 'HYGIENE' ? 'text-purple-500' :
-                          formData.category === 'SOCIAL' ? 'text-pink-500' :
-                          formData.category === 'ORGANIZATION' ? 'text-indigo-500' :
-                          'text-gray-500'
-                        }`}>✓</span>
+                        <span
+                          className={`${
+                            formData.category === 'SLEEP'
+                              ? 'text-blue-500'
+                              : formData.category === 'NUTRITION'
+                              ? 'text-green-500'
+                              : formData.category === 'EXERCISE'
+                              ? 'text-orange-500'
+                              : formData.category === 'HYGIENE'
+                              ? 'text-purple-500'
+                              : formData.category === 'SOCIAL'
+                              ? 'text-pink-500'
+                              : formData.category === 'ORGANIZATION'
+                              ? 'text-indigo-500'
+                              : 'text-gray-500'
+                          }`}
+                        >
+                          ✓
+                        </span>
                         <span className='text-gray-700'>{example}</span>
                       </div>
                     </div>
@@ -422,12 +550,6 @@ export default function NewHabitPage() {
                   💡 Haz clic en cualquier ejemplo para usarlo como título
                 </p>
               </div>
-            )}
-
-            {error && (
-              <Alert variant='destructive'>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
             )}
 
             <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>

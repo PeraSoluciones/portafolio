@@ -21,21 +21,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
+import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Star, Award, Save } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { z } from 'zod';
+import { behaviorSchema } from '@/lib/validations/behavior';
 
 export default function EditBehaviorPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     type: '',
     points: '',
   });
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingBehavior, setLoadingBehavior] = useState(true);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
@@ -100,7 +102,11 @@ export default function EditBehaviorPage() {
 
     if (error) {
       console.error('Error fetching behavior:', error);
-      setError('No se encontró el comportamiento solicitado');
+      toast({
+        title: 'Error al cargar comportamiento',
+        description: 'No se encontró el comportamiento solicitado',
+        variant: 'destructive',
+      });
       setLoadingBehavior(false);
       return;
     }
@@ -120,22 +126,53 @@ export default function EditBehaviorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
     if (!user) {
-      setError('Debes iniciar sesión para editar un comportamiento');
+      toast({
+        title: 'Error de autenticación',
+        description: 'Debes iniciar sesión para editar un comportamiento',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
     if (!selectedChild) {
-      setError('Debes seleccionar un hijo');
+      toast({
+        title: 'Error de validación',
+        description: 'Debes seleccionar un hijo',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
     if (!params.id) {
-      setError('No se especificó el comportamiento a editar');
+      toast({
+        title: 'Error de validación',
+        description: 'No se especificó el comportamiento a editar',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validar los datos con el esquema de Zod
+    const validationResult = behaviorSchema.safeParse({
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      points: formData.points,
+    });
+
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || 'Error de validación';
+      toast({
+        title: 'Error de validación',
+        description: errorMessage,
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
@@ -146,24 +183,40 @@ export default function EditBehaviorPage() {
       const { error: updateError } = await supabase
         .from('behaviors')
         .update({
-          title: formData.title,
-          description: formData.description || null,
-          type: formData.type,
-          points: parseInt(formData.points),
+          title: validationResult.data.title,
+          description: validationResult.data.description,
+          type: validationResult.data.type,
+          points: validationResult.data.points,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id)
         .eq('child_id', selectedChild.id);
 
       if (updateError) {
-        setError(updateError.message);
+        toast({
+          title: 'Error al actualizar comportamiento',
+          description: updateError.message,
+          variant: 'destructive',
+        });
         return;
       }
+
+      // Mostrar toast de éxito
+      toast({
+        title: 'Comportamiento Actualizado',
+        description: 'Los cambios han sido guardados.',
+        variant: 'success',
+      });
 
       // Redirigir a la página de comportamientos
       router.push('/behaviors');
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      toast({
+        title: 'Error inesperado',
+        description:
+          'Ocurrió un error inesperado al actualizar el comportamiento',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -207,26 +260,6 @@ export default function EditBehaviorPage() {
     return (
       <div className='min-h-screen flex items-center justify-center'>
         <div className='animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600'></div>
-      </div>
-    );
-  }
-
-  if (error && !formData.title) {
-    return (
-      <div className='min-h-screen bg-gray-50'>
-        <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-          <Card>
-            <CardContent className='p-6'>
-              <div className='text-center'>
-                <h2 className='text-2xl font-bold text-red-600 mb-4'>Error</h2>
-                <p className='text-gray-600 mb-6'>{error}</p>
-                <Link href='/behaviors'>
-                  <Button>Volver a comportamientos</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     );
   }
@@ -341,11 +374,13 @@ export default function EditBehaviorPage() {
             </div>
 
             {formData.type && (
-              <div className={`p-4 rounded-lg border ${
-                formData.type === 'POSITIVE'
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
-              }`}>
+              <div
+                className={`p-4 rounded-lg border ${
+                  formData.type === 'POSITIVE'
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
                 <div className='flex items-center space-x-2 mb-3'>
                   {formData.type === 'POSITIVE' ? (
                     <div className='p-1 bg-green-100 rounded-full'>
@@ -393,12 +428,6 @@ export default function EditBehaviorPage() {
                   💡 Haz clic en cualquier ejemplo para usarlo como título
                 </p>
               </div>
-            )}
-
-            {error && (
-              <Alert variant='destructive'>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
             )}
 
             <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>

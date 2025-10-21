@@ -22,11 +22,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
+import { useToast } from '@/hooks/use-toast';
+import { createRoutineSchema } from '@/lib/validations/routine';
 import { ArrowLeft, Clock, Award } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { z } from 'zod';
 
 const daysOfWeek = [
   { id: 'LUN', label: 'Lunes' },
@@ -40,13 +43,14 @@ const daysOfWeek = [
 
 export default function NewRoutinePage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     time: '',
     days: [] as string[],
   });
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
   const router = useRouter();
@@ -54,53 +58,100 @@ export default function NewRoutinePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setFieldErrors({});
 
     if (!user) {
-      setError('Debes iniciar sesión para crear una rutina');
+      toast({
+        title: 'Error de autenticación',
+        description: 'Debes iniciar sesión para crear una rutina',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
     if (!selectedChild) {
-      setError('Debes seleccionar un hijo');
+      toast({
+        title: 'Error de validación',
+        description: 'Debes seleccionar un hijo',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
-    if (formData.days.length === 0) {
-      setError('Debes seleccionar al menos un día de la semana');
-      setIsLoading(false);
-      return;
-    }
-
+    // Validar los datos con Zod
     try {
-      const supabase = createClient();
+      const validatedData = createRoutineSchema.parse(formData);
 
-      const { data, error: insertError } = await supabase
-        .from('routines')
-        .insert([
-          {
-            child_id: selectedChild.id,
-            title: formData.title,
-            description: formData.description,
-            time: formData.time,
-            days: formData.days,
-            is_active: true,
-          },
-        ])
-        .select()
-        .single();
+      try {
+        const supabase = createClient();
 
-      if (insertError) {
-        setError(insertError.message);
-        return;
+        const { data, error: insertError } = await supabase
+          .from('routines')
+          .insert([
+            {
+              child_id: selectedChild.id,
+              title: validatedData.title,
+              description: validatedData.description,
+              time: validatedData.time,
+              days: validatedData.days,
+              is_active: true,
+            },
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          toast({
+            title: 'Error al crear la rutina',
+            description: insertError.message,
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Mostrar mensaje de éxito
+        toast({
+          title: 'Rutina creada',
+          description: 'La rutina se ha creado correctamente',
+          variant: 'success',
+        });
+
+        // Redirigir a la página de rutinas
+        router.push('/routines');
+      } catch (err) {
+        toast({
+          title: 'Error del servidor',
+          description: 'Ocurrió un error inesperado al crear la rutina',
+          variant: 'destructive',
+        });
       }
-
-      // Redirigir a la página de rutinas
-      router.push('/routines');
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      if (err instanceof z.ZodError) {
+        // Manejar errores de validación de Zod
+        const errors: Record<string, string> = {};
+        err.issues.forEach((issue) => {
+          if (issue.path.length > 0) {
+            errors[issue.path[0].toString()] = issue.message;
+          }
+        });
+        setFieldErrors(errors);
+
+        // Mostrar un toast con el primer error de validación
+        const firstError = err.issues[0];
+        toast({
+          title: 'Error de validación',
+          description: firstError.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error inesperado',
+          description: 'Ocurrió un error al procesar el formulario',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +159,14 @@ export default function NewRoutinePage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Limpiar el error de este campo cuando el usuario empieza a escribir
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleExampleClick = (example: string) => {
@@ -121,6 +180,15 @@ export default function NewRoutinePage() {
       ...prev,
       days: checked ? [...prev.days, day] : prev.days.filter((d) => d !== day),
     }));
+
+    // Limpiar el error del campo days cuando el usuario selecciona/deselecciona un día
+    if (fieldErrors.days) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.days;
+        return newErrors;
+      });
+    }
   };
 
   const generateTimeSlots = () => {
@@ -186,7 +254,11 @@ export default function NewRoutinePage() {
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 required
                 placeholder='Ej: Desayuno, Tarea escolar, Hora de dormir'
+                className={fieldErrors.title ? 'border-red-500' : ''}
               />
+              {fieldErrors.title && (
+                <p className='text-sm text-red-500'>{fieldErrors.title}</p>
+              )}
             </div>
 
             <div className='space-y-2'>
@@ -208,7 +280,9 @@ export default function NewRoutinePage() {
                 value={formData.time}
                 onValueChange={(value) => handleInputChange('time', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  className={fieldErrors.time ? 'border-red-500' : ''}
+                >
                   <SelectValue placeholder='Selecciona la hora' />
                 </SelectTrigger>
                 <SelectContent>
@@ -219,6 +293,9 @@ export default function NewRoutinePage() {
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.time && (
+                <p className='text-sm text-red-500'>{fieldErrors.time}</p>
+              )}
             </div>
 
             <div className='space-y-3'>
@@ -239,6 +316,9 @@ export default function NewRoutinePage() {
                   </div>
                 ))}
               </div>
+              {fieldErrors.days && (
+                <p className='text-sm text-red-500'>{fieldErrors.days}</p>
+              )}
             </div>
 
             <div className='p-4 bg-secondary/10 rounded-lg border border-secondary/20'>
@@ -273,10 +353,12 @@ export default function NewRoutinePage() {
               </p>
             </div>
 
-            {error && (
-              <Alert variant='destructive'>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+            {Object.keys(fieldErrors).length > 0 && (
+              <div className='p-3 bg-red-50 border border-red-200 rounded-md'>
+                <p className='text-sm text-red-600'>
+                  Por favor, corrige los errores en el formulario
+                </p>
+              </div>
             )}
 
             <div className='flex justify-end space-x-4'>

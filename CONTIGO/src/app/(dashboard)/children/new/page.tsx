@@ -20,27 +20,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { uploadAvatar } from '@/lib/supabase/storage';
+import { useToast } from '@/hooks/use-toast';
+import { childSchema } from '@/lib/validations/children';
+import { z } from 'zod';
 
 export default function NewChildPage() {
   const { user, addChild } = useAppStore();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     birth_date: '',
     adhd_type: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
     null
   );
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -102,10 +105,33 @@ export default function NewChildPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setErrors({});
 
     if (!user) {
-      setError('Debes iniciar sesión para agregar un hijo');
+      toast({
+        title: 'Error',
+        description: 'Debes iniciar sesión para agregar un hijo.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const result = childSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((err) => {
+        if (err.path) {
+          fieldErrors[err.path.join('.')] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast({
+        title: 'Errores de validación',
+        description: 'Por favor, corrige los campos marcados.',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
@@ -114,11 +140,8 @@ export default function NewChildPage() {
       const supabase = createClient();
       let avatarUrl = '';
 
-      // Si hay un archivo seleccionado, subirlo primero
       if (selectedAvatarFile) {
         avatarUrl = await uploadAvatar(selectedAvatarFile, user.id);
-
-        // Limpiar blob URL después de subir exitosamente
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
           blobUrlRef.current = null;
@@ -140,16 +163,30 @@ export default function NewChildPage() {
         .single();
 
       if (insertError) {
-        setError(insertError.message);
+        toast({
+          title: 'Error al crear el perfil',
+          description: insertError.message,
+          variant: 'destructive',
+        });
         return;
-      } else {
-        addChild(data);
       }
 
-      // Redirigir al dashboard
-      router.push('/dashboard');
+      if (data) {
+        addChild(data);
+        toast({
+          title: '¡Éxito!',
+          description: 'El perfil de tu hijo ha sido creado.',
+          variant: 'success',
+        });
+        router.push('/dashboard');
+      }
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      toast({
+        title: 'Error inesperado',
+        description:
+          'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -214,9 +251,11 @@ export default function NewChildPage() {
                   type='text'
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  required
                   placeholder='Nombre del hijo'
                 />
+                {errors.name && (
+                  <p className='text-sm text-red-500'>{errors.name}</p>
+                )}
               </div>
             </div>
 
@@ -229,8 +268,10 @@ export default function NewChildPage() {
                 onChange={(e) =>
                   handleInputChange('birth_date', e.target.value)
                 }
-                required
               />
+              {errors.birth_date && (
+                <p className='text-sm text-red-500'>{errors.birth_date}</p>
+              )}
             </div>
 
             <div className='space-y-2'>
@@ -249,6 +290,9 @@ export default function NewChildPage() {
                 </SelectContent>
               </Select>
 
+              {errors.adhd_type && (
+                <p className='text-sm text-red-500'>{errors.adhd_type}</p>
+              )}
               <div className='p-4 bg-blue-50 rounded-lg'>
                 <h4 className='font-medium text-blue-900 mb-2'>
                   Información sobre tipos de TDAH:
@@ -270,15 +314,11 @@ export default function NewChildPage() {
               </div>
             </div>
 
-            {error && (
-              <Alert variant='destructive'>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
               <Link href='/children'>
-                <Button variant='outline'>Cancelar</Button>
+                <Button variant='outline' type='button' onClick={handleCancel}>
+                  Cancelar
+                </Button>
               </Link>
               <Button
                 type='submit'

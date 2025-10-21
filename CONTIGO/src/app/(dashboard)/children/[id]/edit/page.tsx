@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -27,6 +26,8 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { uploadAvatar, deleteAvatar } from '@/lib/supabase/storage';
+import { useToast } from '@/hooks/use-toast';
+import { childSchema } from '@/lib/validations/children';
 
 const adhdTypes = [
   {
@@ -48,18 +49,19 @@ const adhdTypes = [
 
 export default function EditChildPage() {
   const { user, setSelectedChild } = useAppStore();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     birth_date: '',
     adhd_type: '',
     avatar_url: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(
     null
   );
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState<string | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingChild, setLoadingChild] = useState(true);
   const [childLoaded, setChildLoaded] = useState(false);
@@ -106,7 +108,11 @@ export default function EditChildPage() {
       .single();
 
     if (error) {
-      setError('No se encontró el hijo solicitado');
+      toast({
+        title: 'Error',
+        description: 'No se encontró el hijo solicitado.',
+        variant: 'destructive',
+      });
       setLoadingChild(false);
       return;
     }
@@ -144,16 +150,43 @@ export default function EditChildPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+    setErrors({});
 
     if (!user) {
-      setError('Debes iniciar sesión para editar un hijo');
+      toast({
+        title: 'Error',
+        description: 'Debes iniciar sesión para editar.',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
 
     if (!params.id) {
-      setError('No se especificó el hijo a editar');
+      toast({
+        title: 'Error',
+        description: 'No se especificó el hijo a editar.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const result = childSchema.safeParse(formData);
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((err) => {
+        if (err.path) {
+          fieldErrors[err.path.join('.')] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast({
+        title: 'Errores de validación',
+        description: 'Por favor, corrige los campos marcados.',
+        variant: 'destructive',
+      });
       setIsLoading(false);
       return;
     }
@@ -162,40 +195,27 @@ export default function EditChildPage() {
       const supabase = createClient();
       let avatarUrl = formData.avatar_url;
 
-      // Si hay un nuevo archivo seleccionado, subirlo
       if (selectedAvatarFile) {
-        // Subir nuevo avatar primero
         const newAvatarUrl = await uploadAvatar(selectedAvatarFile, user.id);
-
-        // Solo eliminar el avatar anterior si la subida fue exitosa
-        // y si existe un avatar anterior diferente
         if (formData.avatar_url && formData.avatar_url !== newAvatarUrl) {
           try {
             await deleteAvatar(formData.avatar_url);
           } catch (error) {
             console.error('Error al eliminar avatar anterior:', error);
-            // No fallar la operación si no se puede eliminar el avatar anterior
           }
         }
-
         avatarUrl = newAvatarUrl;
-
-        // Limpiar blob URL después de subir exitosamente
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
           blobUrlRef.current = null;
         }
       } else if (avatarPreviewUrl === null && formData.avatar_url) {
-        // Si se removió el avatar (previewUrl es null pero había avatar anterior)
         try {
           await deleteAvatar(formData.avatar_url);
         } catch (error) {
           console.error('Error al eliminar avatar:', error);
         }
         avatarUrl = '';
-      } else {
-        // Mantener el avatar actual si no cambió
-        avatarUrl = formData.avatar_url;
       }
 
       const { data: updateData, error: updateError } = await supabase
@@ -207,18 +227,35 @@ export default function EditChildPage() {
           avatar_url: avatarUrl || null,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', params.id);
+        .eq('id', params.id)
+        .select()
+        .single();
 
       if (updateError) {
-        setError(updateError.message);
+        toast({
+          title: 'Error al actualizar',
+          description: updateError.message,
+          variant: 'destructive',
+        });
         return;
-      } else {
-        setSelectedChild(updateData);
       }
 
-      router.push('/children');
+      if (updateData) {
+        setSelectedChild(updateData);
+        toast({
+          title: '¡Éxito!',
+          description: 'El perfil ha sido actualizado.',
+          variant: 'success',
+        });
+        router.push('/children');
+      }
     } catch (err) {
-      setError('Ocurrió un error inesperado');
+      toast({
+        title: 'Error inesperado',
+        description:
+          'Ocurrió un error inesperado. Por favor, inténtalo de nuevo.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -273,25 +310,6 @@ export default function EditChildPage() {
     );
   }
 
-  if (error && !formData.name) {
-    return (
-      <div className='min-h-screen bg-gray-50'>
-        <div className='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-          <Card>
-            <CardContent className='p-6'>
-              <div className='text-center'>
-                <h2 className='text-2xl font-bold text-red-600 mb-4'>Error</h2>
-                <p className='text-gray-600 mb-6'>{error}</p>
-                <Link href='/children'>
-                  <Button>Volver a hijos</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -335,9 +353,11 @@ export default function EditChildPage() {
                 type='text'
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                required
                 placeholder='Ej: Juan Pérez'
               />
+              {errors.name && (
+                <p className='text-sm text-red-500'>{errors.name}</p>
+              )}
             </div>
 
             <div className='grid grid-cols-2 gap-4'>
@@ -350,8 +370,10 @@ export default function EditChildPage() {
                   onChange={(e) =>
                     handleInputChange('birth_date', e.target.value)
                   }
-                  required
                 />
+                {errors.birth_date && (
+                  <p className='text-sm text-red-500'>{errors.birth_date}</p>
+                )}
               </div>
             </div>
 
@@ -377,7 +399,9 @@ export default function EditChildPage() {
                   ))}
                 </SelectContent>
               </Select>
-
+              {errors.adhd_type && (
+                <p className='text-sm text-red-500'>{errors.adhd_type}</p>
+              )}
               <div className='p-4 bg-blue-50 rounded-lg'>
                 <h4 className='font-medium text-blue-900 mb-2'>
                   Información sobre tipos de TDAH:
@@ -399,15 +423,9 @@ export default function EditChildPage() {
               </div>
             </div>
 
-            {error && (
-              <Alert variant='destructive'>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className='flex justify-end space-x-4 border-t pt-6 mt-6'>
-              <Link href='/children'>
-                <Button variant='outline' onClick={handleCancel}>
+              <Link href='/children' passHref>
+                <Button variant='outline' type='button' onClick={handleCancel}>
                   Cancelar
                 </Button>
               </Link>
