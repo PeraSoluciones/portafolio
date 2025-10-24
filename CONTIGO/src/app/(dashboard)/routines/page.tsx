@@ -17,12 +17,15 @@ import { useAppStore } from '@/store/app-store';
 import { Routine } from '@/types/index';
 import { Plus, Clock, Calendar, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/src/hooks/use-toast';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function RoutinesPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user) {
@@ -57,7 +60,11 @@ export default function RoutinesPage() {
       .order('time', { ascending: true });
 
     if (error) {
-      console.error('Error fetching routines:', error);
+      toast({
+        title: 'Error al cargar rutinas',
+        description: 'No se pudieron cargar las rutinas',
+        variant: 'destructive',
+      });
     } else {
       setRoutines(data || []);
     }
@@ -73,8 +80,17 @@ export default function RoutinesPage() {
       .eq('id', routineId);
 
     if (error) {
-      console.error('Error updating routine:', error);
+      toast({
+        title: 'Error al actualizar rutina',
+        description: 'No se pudo actualizar la rutina',
+        variant: 'destructive',
+      });
     } else {
+      toast({
+        title: 'Rutina actualizada',
+        description: 'La rutina ha sido actualizada correctamente',
+        variant: 'success',
+      });
       setRoutines(
         routines.map((routine) =>
           routine.id === routineId
@@ -97,8 +113,17 @@ export default function RoutinesPage() {
       .eq('id', routineId);
 
     if (error) {
-      console.error('Error deleting routine:', error);
+      toast({
+        title: 'Error al eliminar rutina',
+        description: 'No se pudo eliminar la rutina',
+        variant: 'destructive',
+      });
     } else {
+      toast({
+        title: 'Rutina eliminada',
+        description: 'La rutina ha sido eliminada correctamente',
+        variant: 'success',
+      });
       setRoutines(routines.filter((routine) => routine.id !== routineId));
     }
   };
@@ -198,14 +223,21 @@ export default function RoutinesPage() {
                           <Edit className='h-4 w-4' />
                         </Button>
                       </Link>
-                      <Button
-                        variant='outline'
-                        size='sm'
+                      <AlertModal
+                        title='Eliminar rutina'
+                        description='¿Estas seguro de que quieres eliminar esta rutina?'
                         onClick={() => handleDelete(routine.id)}
-                        className='text-red-600 hover:text-red-700'
+                        actionText='Eliminar'
+                        className='bg-red-600 hover:bg-red-700'
                       >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='text-red-600 hover:text-red-700'
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </AlertModal>
                     </div>
                   </div>
                 </div>

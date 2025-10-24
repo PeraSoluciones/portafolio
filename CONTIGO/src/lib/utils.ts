@@ -18,3 +18,15 @@ export const calculateAge = (birthDate: string) => {
 
   return age;
 };
+
+export const formatedCurrentDate = (
+  local: string = 'es-EC',
+  timeZone: string = 'America/Guayaquil'
+) => {
+  return new Date().toLocaleDateString(local, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone,
+  });
+};

@@ -512,12 +512,12 @@ export default function DashboardPage() {
               </div>
 
               <div className='mt-auto flex items-center justify-between'>
-                <Link href='/resources' className='flex-1 mr-2'>
+                <Link href='/rewards' className='flex-1 mr-2'>
                   <Button variant='outline' size='sm' className='w-full'>
                     Ver todas
                   </Button>
                 </Link>
-                <Link href='/resources'>
+                <Link href='/rewards/new'>
                   <Button
                     size='sm'
                     className='bg-secondary hover:bg-secondary/90 text-secondary-foreground transition-colors duration-200'

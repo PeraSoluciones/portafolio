@@ -290,10 +290,7 @@ export default function NewBehaviorPage() {
                 required
                 placeholder='10'
               />
-              <p className='text-sm text-gray-500'>
-                Usa números positivos para comportamientos positivos y negativos
-                para los negativos
-              </p>
+              <p className='text-sm text-gray-500'>Usa números positivos</p>
             </div>
 
             {formData.type && (

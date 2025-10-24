@@ -24,12 +24,15 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function HabitsPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitRecords, setHabitRecords] = useState<HabitRecord[]>([]);
+  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -66,7 +69,11 @@ export default function HabitsPage() {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching habits:', error);
+      toast({
+        title: 'Error al cargar hábitos',
+        description: 'No se pudieron cargar los hábitos',
+        variant: 'destructive',
+      });
     } else {
       setHabits(data || []);
     }
@@ -87,23 +94,32 @@ export default function HabitsPage() {
       );
 
     if (error) {
-      console.error('Error fetching habit records:', error);
+      toast({
+        title: 'Error al cargar registros de hábitos',
+        description: 'No se pudieron cargar los registros de hábitos',
+        variant: 'destructive',
+      });
     } else {
       setHabitRecords(data || []);
     }
   };
 
   const handleDelete = async (habitId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este hábito?')) {
-      return;
-    }
-
     const supabase = createClient();
     const { error } = await supabase.from('habits').delete().eq('id', habitId);
 
     if (error) {
-      console.error('Error deleting habit:', error);
+      toast({
+        title: 'Error al eliminar hábito',
+        description: 'No se pudo eliminar el hábito',
+        variant: 'destructive',
+      });
     } else {
+      toast({
+        title: 'Hábito eliminado',
+        description: 'El hábito ha sido eliminado correctamente',
+        variant: 'success',
+      });
       setHabits(habits.filter((habit) => habit.id !== habitId));
     }
   };
@@ -223,14 +239,21 @@ export default function HabitsPage() {
                           <Edit className='h-4 w-4' />
                         </Button>
                       </Link>
-                      <Button
-                        variant='outline'
-                        size='sm'
+                      <AlertModal
+                        title='Eliminar hábito'
+                        description='Estas seguro de eliminar este hábito?'
                         onClick={() => handleDelete(habit.id)}
-                        className='text-red-600 hover:text-red-700'
+                        actionText='Eliminar'
+                        className='bg-red-600 hover:bg-red-700'
                       >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='text-red-600 hover:text-red-700'
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </AlertModal>
                     </div>
                   </div>
                   {habit.description && (

@@ -22,9 +22,12 @@ import {
   Trash2,
   Calendar,
   Award,
+  BadgeAlert,
 } from 'lucide-react';
 import Link from 'next/link';
 import BehaviorRecordModal from '@/components/behavior-record-modal';
+import { useToast } from '@/hooks/use-toast';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function BehaviorsPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
@@ -34,7 +37,11 @@ export default function BehaviorsPage() {
   const [selectedBehavior, setSelectedBehavior] = useState<Behavior | null>(
     null
   );
+  const [selectedRecord, setSelectedRecord] = useState<BehaviorRecord | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -76,7 +83,11 @@ export default function BehaviorsPage() {
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching behaviors:', error);
+      toast({
+        title: 'Error al cargar comportamientos',
+        description: 'No se pudieron cargar los comportamientos',
+        variant: 'destructive',
+      });
     } else {
       setBehaviors(data || []);
     }
@@ -97,7 +108,11 @@ export default function BehaviorsPage() {
       );
 
     if (error) {
-      console.error('Error fetching behavior records:', error);
+      toast({
+        title: 'Error al cargar registros de comportamientos',
+        description: 'No se pudieron cargar los registros de comportamientos',
+        variant: 'destructive',
+      });
     } else {
       setBehaviorRecords(data || []);
     }
@@ -105,12 +120,23 @@ export default function BehaviorsPage() {
 
   const handleOpenRecordModal = (behavior: Behavior) => {
     setSelectedBehavior(behavior);
+    setSelectedRecord(null); // Limpiar el registro seleccionado para crear uno nuevo
+    setIsModalOpen(true);
+  };
+
+  const handleEditRecordModal = (
+    record: BehaviorRecord,
+    behavior: Behavior
+  ) => {
+    setSelectedBehavior(behavior);
+    setSelectedRecord(record); // Establecer el registro a editar
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedBehavior(null);
+    setSelectedRecord(null);
   };
 
   const handleRecordSuccess = () => {
@@ -118,13 +144,32 @@ export default function BehaviorsPage() {
     fetchBehaviorRecords();
   };
 
-  const handleDelete = async (behaviorId: string) => {
-    if (
-      !confirm('¿Estás seguro de que quieres eliminar este comportamiento?')
-    ) {
-      return;
-    }
+  const handleDeleteRecord = async (recordId: string) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('behavior_records')
+      .delete()
+      .eq('id', recordId);
 
+    if (error) {
+      toast({
+        title: 'Error al eliminar el registro',
+        description: 'Por favor, intenta nuevamente.',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Registro eliminado',
+        description: 'El registro ha sido eliminado correctamente.',
+        variant: 'success',
+      });
+      setBehaviorRecords(
+        behaviorRecords.filter((record) => record.id !== recordId)
+      );
+    }
+  };
+
+  const handleDelete = async (behaviorId: string) => {
     const supabase = createClient();
     const { error } = await supabase
       .from('behaviors')
@@ -132,8 +177,17 @@ export default function BehaviorsPage() {
       .eq('id', behaviorId);
 
     if (error) {
-      console.error('Error deleting behavior:', error);
+      toast({
+        title: 'Error al eliminar el comportamiento',
+        description: 'Por favor, intenta nuevamente.',
+        variant: 'destructive',
+      });
     } else {
+      toast({
+        title: 'Comportamiento eliminado',
+        description: 'El comportamiento ha sido eliminado correctamente.',
+        variant: 'success',
+      });
       setBehaviors(behaviors.filter((behavior) => behavior.id !== behaviorId));
     }
   };
@@ -247,9 +301,16 @@ export default function BehaviorsPage() {
                   if (!behavior) return null;
 
                   const isToday =
-                    record.date === new Date().toISOString().split('T')[0];
-                  const recordDate = new Date(record.date);
-                  const formattedDate = recordDate.toLocaleDateString('es-ES', {
+                    record.date ===
+                    new Date().toLocaleDateString('en-CA', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      timeZone: 'America/Guayaquil',
+                    });
+                  const recordDate = new Date(record.date.split('-').join(','));
+
+                  const formattedDate = recordDate.toLocaleDateString('es-EC', {
                     weekday: 'short',
                     year: 'numeric',
                     month: 'short',
@@ -296,22 +357,51 @@ export default function BehaviorsPage() {
                           )}
                         </div>
                       </div>
-                      <div
-                        className={`text-right ${
-                          behavior.points > 0
-                            ? 'text-green-600'
-                            : 'text-red-600'
-                        }`}
-                      >
-                        <div className='font-semibold'>
-                          {behavior.points > 0 ? '+' : ''}
-                          {behavior.points} pts
+                      <div className='flex items-center space-x-3'>
+                        <div
+                          className={`text-right ${
+                            behavior.type === 'POSITIVE'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          <div className='font-semibold'>
+                            {behavior.type === 'POSITIVE' ? '+' : '-'}
+                            {behavior.points} pts
+                          </div>
+                          <div className='text-xs opacity-75'>
+                            {behavior.type === 'POSITIVE'
+                              ? 'Positivo'
+                              : 'Negativo'}
+                          </div>
                         </div>
-                        <div className='text-xs opacity-75'>
-                          {behavior.type === 'POSITIVE'
-                            ? 'Positivo'
-                            : 'Negativo'}
-                        </div>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                          onClick={() =>
+                            handleEditRecordModal(record, behavior)
+                          }
+                        >
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        <AlertModal
+                          title='¿Estás seguro de que quieres eliminar este
+                                registro?'
+                          description='Esta acción no se puede deshacer. El registro se
+                                eliminará permanentemente de la base de datos.'
+                          actionText='Eliminar'
+                          onClick={() => handleDeleteRecord(record.id)}
+                          className='bg-red-600 hover:bg-red-700'
+                        >
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='text-red-600 hover:text-red-700 hover:bg-red-50'
+                          >
+                            <Trash2 className='h-4 w-4' />
+                          </Button>
+                        </AlertModal>
                       </div>
                     </div>
                   );
@@ -385,14 +475,21 @@ export default function BehaviorsPage() {
                           <Edit className='h-4 w-4' />
                         </Button>
                       </Link>
-                      <Button
-                        variant='outline'
-                        size='sm'
+                      <AlertModal
+                        title='¿Estas seguro de que quieres eliminar este comportamiento?'
+                        description='Esta accion no se puede deshacer. El comportamiento se eliminara permanentemente de la base de datos.'
+                        actionText='Eliminar'
                         onClick={() => handleDelete(behavior.id)}
-                        className='text-red-600 hover:text-red-700'
+                        className='bg-red-600 hover:bg-red-700'
                       >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          className='text-red-600 hover:text-red-700'
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button>
+                      </AlertModal>
                     </div>
                   </div>
                   {behavior.description && (
@@ -412,9 +509,13 @@ export default function BehaviorsPage() {
                         {behavior.type === 'POSITIVE' ? 'Positivo' : 'Negativo'}
                       </Badge>
                       <div className='flex items-center space-x-2'>
-                        <Award className='h-4 w-4 text-yellow-600' />
+                        {behavior.type === 'POSITIVE' ? (
+                          <Award className='h-4 w-4 text-green-600' />
+                        ) : (
+                          <BadgeAlert className='h-4 w-4 text-red-600' />
+                        )}
                         <span className='font-medium'>
-                          {behavior.points > 0 ? '+' : ''}
+                          {behavior.type === 'POSITIVE' ? '+' : '-'}
                           {behavior.points} pts
                         </span>
                       </div>
@@ -453,11 +554,12 @@ export default function BehaviorsPage() {
         </div>
       )}
 
-      {/* Modal para registrar comportamientos */}
+      {/* Modal para registrar/editar comportamientos */}
       <BehaviorRecordModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         behavior={selectedBehavior}
+        behaviorRecord={selectedRecord}
         onSuccess={handleRecordSuccess}
       />
       {/* Botón Flotante para Móvil */}
