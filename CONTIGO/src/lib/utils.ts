@@ -30,3 +30,25 @@ export const formatedCurrentDate = (
     timeZone,
   });
 };
+
+export const extractFirstParagraphText = (htmlContent: string): string => {
+  if (typeof window === 'undefined' || !htmlContent) {
+    return '';
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    const firstParagraph = doc.querySelector('p');
+
+    if (firstParagraph) {
+      return firstParagraph.textContent || '';
+    }
+
+    // Fallback if no paragraph is found
+    return doc.body.textContent?.substring(0, 150) || '';
+  } catch (error) {
+    console.error('Error parsing HTML content:', error);
+    return '';
+  }
+};

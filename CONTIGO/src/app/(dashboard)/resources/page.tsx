@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { extractFirstParagraphText } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/store/app-store';
 import { Resource } from '@/types/index';
 import { BookOpen, Video, Lightbulb, Calendar, User } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ResourcesPage() {
   const { user } = useAppStore();
@@ -101,7 +103,7 @@ export default function ResourcesPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
+    return new Date(dateString).toLocaleDateString('es-EC', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -162,16 +164,18 @@ export default function ResourcesPage() {
                 </CardHeader>
                 <CardContent>
                   <p className='text-muted-foreground mb-4 line-clamp-3'>
-                    {resource.content}
+                    {extractFirstParagraphText(resource.content)}
                   </p>
                   <div className='flex items-center justify-between text-sm text-muted-foreground'>
                     <div className='flex items-center space-x-1'>
                       <Calendar className='h-4 w-4' />
                       <span>{formatDate(resource.created_at)}</span>
                     </div>
-                    <Button variant='outline' size='sm'>
-                      Leer más
-                    </Button>
+                    <Link href={`/resources/${resource.id}`}>
+                      <Button variant='outline' size='sm'>
+                        Leer más
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -227,16 +231,18 @@ export default function ResourcesPage() {
                       </CardHeader>
                       <CardContent>
                         <p className='text-muted-foreground mb-4 line-clamp-3'>
-                          {resource.content}
+                          {extractFirstParagraphText(resource.content)}
                         </p>
                         <div className='flex items-center justify-between text-sm text-muted-foreground'>
                           <div className='flex items-center space-x-1'>
                             <Calendar className='h-4 w-4' />
                             <span>{formatDate(resource.created_at)}</span>
                           </div>
-                          <Button variant='outline' size='sm'>
-                            Leer más
-                          </Button>
+                          <Link href={`/resources/${resource.id}`}>
+                            <Button variant='outline' size='sm'>
+                              Leer más
+                            </Button>
+                          </Link>
                         </div>
                       </CardContent>
                     </Card>
