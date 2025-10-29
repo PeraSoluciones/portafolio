@@ -1,12 +1,21 @@
-import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+const config = {
   darkMode: 'class',
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{ts,tsx}',
+  ],
+  safelist: [
+    'grid',
+    'grid-cols-1',
+    'md:grid-cols-2',
+    'col-span-1',
+    'md:col-span-2',
+    'gap-8',
   ],
   theme: {
     extend: {
@@ -62,3 +71,4 @@ const config: Config = {
   plugins: [tailwindcssAnimate],
 };
 export default config;
+

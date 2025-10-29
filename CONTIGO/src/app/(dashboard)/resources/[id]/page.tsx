@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, Video, Lightbulb, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import parse, { domToReact, DOMNode, Element } from 'html-react-parser';
-import { SymptomChart, AdaptationsChart } from '@/components/adhd-charts';
+import { SymptomChart, AdaptationsChart, BehavioralChart, RoutineChart, LifestyleChart, HeredabilityChart, BehaviorRadarChart, TreatmentByAgeChart } from '@/components/adhd-charts';
 import { TimelineChart, PyramidChart, VennChart } from '@/components/adhd-mermaid-charts';
 
 interface ResourcePageProps {
@@ -64,6 +64,18 @@ const replacePlaceholdersWithComponents = (domNode: DOMNode) => {
         return <SymptomChart />;
       case 'adaptationsChart':
         return <AdaptationsChart />;
+      case 'behavioralChart':
+        return <BehavioralChart />;
+      case 'routineChart':
+        return <RoutineChart />;
+      case 'lifestyleChart':
+        return <LifestyleChart />;
+      case 'heredabilityChart':
+        return <HeredabilityChart />;
+      case 'behaviorRadarChart':
+        return <BehaviorRadarChart />;
+      case 'treatmentByAgeChart':
+        return <TreatmentByAgeChart />;
       default:
         return undefined;
     }
