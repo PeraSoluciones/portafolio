@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/store/app-store';
 import { Resource } from '@/types/index';
-import { BookOpen, Video, Lightbulb, Calendar, User } from 'lucide-react';
+import { BookOpen, Video, Lightbulb, Headphones, Calendar, User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ResourcesPage() {
@@ -37,6 +37,7 @@ export default function ResourcesPage() {
     ARTICLE: 'text-accent',
     VIDEO: 'text-chart-1',
     TIP: 'text-success',
+    AUDIO: 'text-purple-500',
   };
 
   useEffect(() => {
@@ -88,6 +89,8 @@ export default function ResourcesPage() {
         return <Video className={`h-4 w-4 ${typeColors[type]}`} />;
       case 'TIP':
         return <Lightbulb className={`h-4 w-4 ${typeColors[type]}`} />;
+      case 'AUDIO':
+        return <Headphones className={`h-4 w-4 ${typeColors[type]}`} />;
       default:
         return <BookOpen className='h-4 w-4 text-accent' />;
     }
@@ -98,8 +101,37 @@ export default function ResourcesPage() {
       ARTICLE: 'Artículo',
       VIDEO: 'Video',
       TIP: 'Consejo',
+      AUDIO: 'Audio',
     };
     return labels[type] || type;
+  };
+
+  const getAudioDescription = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed.description === 'string') {
+        return parsed.description;
+      }
+    } catch (e) {
+      // El contenido no es JSON válido o no tiene la propiedad 'description'
+      console.error("Failed to parse audio content:", e);
+    }
+    // Fallback si todo lo demás falla
+    return extractFirstParagraphText(content);
+  };
+
+  const getVideoDescription = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed.description === 'string') {
+        return parsed.description;
+      }
+    } catch (e) {
+      // El contenido no es JSON válido o no tiene la propiedad 'description'
+      console.error("Failed to parse video content:", e);
+    }
+    // Fallback si todo lo demás falla
+    return extractFirstParagraphText(content);
   };
 
   const formatDate = (dateString: string) => {
@@ -164,7 +196,12 @@ export default function ResourcesPage() {
                 </CardHeader>
                 <CardContent>
                   <p className='text-muted-foreground mb-4 line-clamp-3'>
-                    {extractFirstParagraphText(resource.content)}
+                    {resource.type === 'AUDIO'
+                      ? getAudioDescription(resource.content)
+                      : resource.type === 'VIDEO'
+                      ? getVideoDescription(resource.content)
+                      : extractFirstParagraphText(resource.content)
+                    }
                   </p>
                   <div className='flex items-center justify-between text-sm text-muted-foreground'>
                     <div className='flex items-center space-x-1'>
@@ -173,7 +210,7 @@ export default function ResourcesPage() {
                     </div>
                     <Link href={`/resources/${resource.id}`}>
                       <Button variant='outline' size='sm'>
-                        Leer más
+                        {resource.type === 'AUDIO' ? 'Reproducir' : resource.type === 'VIDEO' ? 'Reproducir' : 'Leer más'}
                       </Button>
                     </Link>
                   </div>
@@ -231,7 +268,12 @@ export default function ResourcesPage() {
                       </CardHeader>
                       <CardContent>
                         <p className='text-muted-foreground mb-4 line-clamp-3'>
-                          {extractFirstParagraphText(resource.content)}
+                          {resource.type === 'AUDIO'
+                            ? getAudioDescription(resource.content)
+                            : resource.type === 'VIDEO'
+                            ? getVideoDescription(resource.content)
+                            : extractFirstParagraphText(resource.content)
+                          }
                         </p>
                         <div className='flex items-center justify-between text-sm text-muted-foreground'>
                           <div className='flex items-center space-x-1'>
@@ -240,7 +282,7 @@ export default function ResourcesPage() {
                           </div>
                           <Link href={`/resources/${resource.id}`}>
                             <Button variant='outline' size='sm'>
-                              Leer más
+                              {resource.type === 'AUDIO' ? 'Reproducir' : resource.type === 'VIDEO' ? 'Reproducir' : 'Leer más'}
                             </Button>
                           </Link>
                         </div>

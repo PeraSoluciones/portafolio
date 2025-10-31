@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, Video, Lightbulb, Calendar } from 'lucide-react';
+import { ArrowLeft, BookOpen, Video, Lightbulb, Headphones, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import parse, { domToReact, DOMNode, Element } from 'html-react-parser';
 import { SymptomChart, AdaptationsChart, BehavioralChart, RoutineChart, LifestyleChart, HeredabilityChart, BehaviorRadarChart, TreatmentByAgeChart } from '@/components/adhd-charts';
@@ -19,12 +19,14 @@ const typeColors = {
   ARTICLE: 'text-accent',
   VIDEO: 'text-chart-1',
   TIP: 'text-success',
+  AUDIO: 'text-purple-500',
 };
 
 const typeIcons = {
   ARTICLE: BookOpen,
   VIDEO: Video,
   TIP: Lightbulb,
+  AUDIO: Headphones,
 };
 
 const getCategoryLabel = (category: string) => {
@@ -43,6 +45,7 @@ const getTypeLabel = (type: string) => {
     ARTICLE: 'Artículo',
     VIDEO: 'Video',
     TIP: 'Consejo',
+    AUDIO: 'Audio',
   };
   return labels[type] || type;
 };
@@ -148,9 +151,33 @@ export default async function ResourcePage({ params }: ResourcePageProps) {
           </div>
         </CardHeader>
         <CardContent className='prose prose-sm md:prose-base max-w-none'>
-          <div className='text-base leading-relaxed'>
-            {parse(resource.content, { replace: replacePlaceholdersWithComponents })}
-          </div>
+          {resource.type === 'VIDEO' ? (
+            <div className='w-full space-y-4'>
+              <div className='aspect-video'>
+                <video controls preload="metadata" className='w-full h-full rounded-lg shadow-lg'>
+                  <source src={JSON.parse(resource.content).video_url} type="video/mp4" />
+                  Tu navegador no soporta el elemento de video.
+                </video>
+              </div>
+              <div className='text-base leading-relaxed'>
+                <p>{JSON.parse(resource.content).description}</p>
+              </div>
+            </div>
+          ) : resource.type === 'AUDIO' ? (
+            <div className='w-full space-y-4'>
+              <div className='text-base leading-relaxed'>
+                <p>{JSON.parse(resource.content).description}</p>
+              </div>
+              <audio controls preload="metadata" className='w-full'>
+                <source src={JSON.parse(resource.content).audio_url} type="audio/mpeg" />
+                Tu navegador no soporta el elemento de audio.
+              </audio>
+            </div>
+          ) : (
+            <div className='text-base leading-relaxed'>
+              {parse(resource.content, { replace: replacePlaceholdersWithComponents })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

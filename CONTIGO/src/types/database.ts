@@ -93,7 +93,7 @@ export interface Resource {
   title: string;
   content: string;
   category: 'ROUTINES' | 'HABITS' | 'BEHAVIOR' | 'EMOTIONAL' | 'EDUCATIONAL';
-  type: 'ARTICLE' | 'VIDEO' | 'TIP';
+  type: 'ARTICLE' | 'VIDEO' | 'TIP' | 'AUDIO';
   is_active: boolean;
   created_at: string;
   updated_at: string;

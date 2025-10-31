@@ -16,6 +16,21 @@ const config = {
     'col-span-1',
     'md:col-span-2',
     'gap-8',
+    'w-4/5',
+    'bg-orange-50',
+    'border-orange-500',
+    'border-yellow-500',
+    'border-green-600',
+    'border-gray-200',
+    'border-purple-500',
+    'border-primary',
+    'text-orange-700',
+    'text-green-700',
+    'text-red-700',
+    'text-purple-700',
+    'border-b-4',
+    'h-1',
+    'mb-12',
   ],
   theme: {
     extend: {
@@ -71,4 +86,3 @@ const config = {
   plugins: [tailwindcssAnimate],
 };
 export default config;
-
