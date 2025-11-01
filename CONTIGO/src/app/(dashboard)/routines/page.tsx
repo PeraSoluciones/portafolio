@@ -17,7 +17,7 @@ import { useAppStore } from '@/store/app-store';
 import { Routine } from '@/types/index';
 import { Plus, Clock, Calendar, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useToast } from '@/src/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function RoutinesPage() {

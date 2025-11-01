@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/store/app-store';
 import { Resource } from '@/types/index';
-import { BookOpen, Video, Lightbulb, Headphones, Calendar, User } from 'lucide-react';
+import { BookOpen, Video, Lightbulb, Headphones, Calendar, User, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ResourcesPage() {
@@ -170,6 +170,35 @@ export default function ResourcesPage() {
           <TabsTrigger value='EMOTIONAL'>Emocional</TabsTrigger>
           <TabsTrigger value='EDUCATIONAL'>Educativo</TabsTrigger>
         </TabsList>
+
+        {/* Tarjeta especial para el Generador de Planes de Acción */}
+        <div className='mb-8'>
+            <Card className="border-2 border-dashed border-primary hover:shadow-lg transition-shadow cursor-pointer group">
+                <Link href="/resources/action-plan-generator">
+                  <CardHeader>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center space-x-2'>
+                        <Wand2 className='h-6 w-6 text-primary' />
+                        <Badge variant='default' className="bg-primary">
+                          Herramienta IA
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardTitle className='text-2xl group-hover:text-primary transition-colors'>
+                      Generador de Planes de Acción
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className='text-muted-foreground mb-4 text-lg'>
+                      Obtén un plan de acción personalizado y basado en IA para abordar desafíos específicos del TDAH. Describe una situación y recibe estrategias prácticas de un experto.
+                    </p>
+                    <Button variant="default" className="w-full">
+                      Generar Plan Ahora
+                    </Button>
+                  </CardContent>
+                </Link>
+            </Card>
+        </div>
 
         <TabsContent value='all' className='space-y-6'>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>

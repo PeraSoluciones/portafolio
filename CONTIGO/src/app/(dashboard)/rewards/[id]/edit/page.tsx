@@ -18,7 +18,7 @@ import { useAppStore } from '@/store/app-store';
 import { ArrowLeft, Gift, Save } from 'lucide-react';
 import Link from 'next/link';
 import { rewardSchema, type RewardFormValues } from '@/lib/validations/rewards';
-import { useToast } from '@/src/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function EditRewardPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();

@@ -17,7 +17,7 @@ import { Gift, Plus, Edit, Trash2, Trophy, Star } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import Link from 'next/link';
 import { Reward } from '@/types/database';
-import { useToast } from '@/src/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function RewardsPage() {
