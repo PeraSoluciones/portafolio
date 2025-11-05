@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import {
   Card,
   CardContent,
@@ -13,18 +13,21 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Plus, Edit, Trash2, Trophy, Star } from 'lucide-react';
+import { Gift, Plus, Edit, Trash2, Trophy, Star, CheckCircle } from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import Link from 'next/link';
 import { Reward } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export default function RewardsPage() {
   const router = useRouter();
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
   const [loading, setLoading] = useState(true);
-  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [rewards, setRewards] = useState<any[]>([]);
+  const [childPoints, setChildPoints] = useState(0);
+  const [claimingReward, setClaimingReward] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,19 +49,29 @@ export default function RewardsPage() {
   useEffect(() => {
     if (selectedChild) {
       fetchRewards();
+      fetchChildPoints();
     }
   }, [selectedChild]);
 
   const fetchRewards = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('rewards')
-      .select('*')
+      .select(`
+        id,
+        title,
+        description,
+        points_required,
+        is_active,
+        created_at,
+        updated_at,
+        reward_claims(id, claimed_at)
+      `)
       .eq('child_id', selectedChild.id)
       .eq('is_active', true)
-      .order('created_at', { ascending: true });
+      .order('points_required', { ascending: true });
 
     if (error) {
       toast({
@@ -67,14 +80,99 @@ export default function RewardsPage() {
         variant: 'destructive',
       });
     } else {
-      setRewards(data || []);
+      // Procesar recompensas para determinar si ya fueron canjeadas
+      const processedRewards = data?.map(reward => {
+        const hasBeenClaimed = reward.reward_claims && reward.reward_claims.length > 0;
+        return {
+          ...reward,
+          has_been_claimed: hasBeenClaimed,
+          can_redeem: !hasBeenClaimed && childPoints >= reward.points_required,
+        };
+      }) || [];
+      
+      setRewards(processedRewards);
     }
 
     setLoading(false);
   };
 
+  const fetchChildPoints = async () => {
+    if (!selectedChild) return;
+
+    const supabase = createBrowserClient();
+    const { data, error } = await supabase
+      .from('children')
+      .select('points_balance')
+      .eq('id', selectedChild.id)
+      .single();
+
+    if (error) {
+      console.error('Error al obtener puntos del niño:', error);
+    } else {
+      setChildPoints(data?.points_balance || 0);
+    }
+  };
+
+  const handleClaimReward = async (rewardId: string, rewardTitle: string, pointsRequired: number) => {
+    if (!selectedChild) return;
+    
+    if (childPoints < pointsRequired) {
+      toast({
+        title: 'Puntos insuficientes',
+        description: `Necesitas ${pointsRequired} puntos para canjear esta recompensa. Tienes ${childPoints} puntos.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setClaimingReward(true);
+    
+    try {
+      const response = await fetch('/api/reward-claims', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reward_id: rewardId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al canjear recompensa');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: '¡Recompensa canjeada!',
+        description: `Has canjeado "${rewardTitle}" correctamente. Tu nuevo saldo es ${result.new_balance} puntos.`,
+        variant: 'success',
+      });
+
+      // Actualizar el saldo de puntos y la lista de recompensas
+      setChildPoints(result.new_balance);
+      setRewards(prev => prev.map(reward =>
+        reward.id === rewardId
+          ? { ...reward, has_been_claimed: true, can_redeem: false }
+          : reward
+      ));
+
+    } catch (error) {
+      console.error('Error al canjear recompensa:', error);
+      toast({
+        title: 'Error al canjear recompensa',
+        description: 'No se pudo canjear la recompensa. Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+    } finally {
+      setClaimingReward(false);
+    }
+  };
+
   const handleDelete = async (rewardId: string) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase
       .from('rewards')
       .delete()
@@ -112,9 +210,16 @@ export default function RewardsPage() {
               Recompensas de {selectedChild?.name}
             </h2>
             <p className='text-gray-600 mt-2'>
-              Gestiona las recompensas disponibles para motivar y celebrar
-              logros
+              Gestiona las recompensas disponibles para motivar y celebrar logros
             </p>
+            {selectedChild && (
+              <div className="mt-2 flex items-center space-x-2">
+                <Star className="h-5 w-5 text-yellow-500" />
+                <span className="text-lg font-semibold text-gray-700">
+                  Saldo actual: {childPoints} puntos
+                </span>
+              </div>
+            )}
           </div>
           <Link href='/rewards/new' className='hidden md:inline-flex'>
             <Button>
@@ -185,16 +290,27 @@ export default function RewardsPage() {
               <CardContent>
                 <div className='space-y-4'>
                   <div className='flex items-center justify-between'>
-                    <Badge variant='outline'>
-                      {reward.is_active ? 'Activa' : 'Inactiva'}
-                    </Badge>
                     <div className='flex items-center space-x-2'>
-                      <Star className='h-4 w-4 text-yellow-500' />
-                      <span className='text-sm font-medium'>
-                        {reward.points_required} puntos
-                      </span>
+                      {reward.has_been_claimed ? (
+                        <>
+                          <CheckCircle className='h-4 w-4 text-green-500' />
+                          <Badge variant='outline' className='text-green-600 border-green-600'>
+                            Canjeada
+                          </Badge>
+                        </>
+                      ) : (
+                        <>
+                          <Star className='h-4 w-4 text-yellow-500' />
+                          <span className='text-sm font-medium'>
+                            {reward.points_required} puntos
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
+                  {reward.description && (
+                    <CardDescription>{reward.description}</CardDescription>
+                  )}
                 </div>
               </CardContent>
               <CardFooter>

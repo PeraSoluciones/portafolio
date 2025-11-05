@@ -25,6 +25,14 @@ export const habitSchema = z.object({
     .nonempty({
       message: "La unidad es obligatoria.",
     }),
+  points_value: z.string()
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val), {
+      message: "El valor de puntos debe ser un número válido.",
+    })
+    .refine((val) => val >= 0, {
+      message: "El valor de puntos no puede ser negativo.",
+    }),
 });
 
 export type HabitFormValues = z.infer<typeof habitSchema>;

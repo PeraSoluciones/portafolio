@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -103,7 +103,7 @@ const replacePlaceholdersWithComponents = (domNode: DOMNode) => {
 export default async function ResourcePage({ params }: ResourcePageProps) {
   const awaitedParams = await params;
   const id = awaitedParams.id;
-  const supabase = await createClient();
+  const supabase = await createServerClient();
 
   const { data: resource, error } = await supabase
     .from('resources')

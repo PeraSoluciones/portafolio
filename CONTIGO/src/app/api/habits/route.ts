@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { child_id, title, description, category, target_frequency, unit } = body;
+    const { child_id, title, description, category, target_frequency, unit, points_value } = body;
 
-    if (!child_id || !title || !category || !target_frequency || !unit) {
+    if (!child_id || !title || !category || !target_frequency || !unit || points_value === undefined) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
         { status: 400 }
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
           category,
           target_frequency: parseInt(target_frequency),
           unit,
+          points_value: parseInt(points_value),
         },
       ])
       .select()

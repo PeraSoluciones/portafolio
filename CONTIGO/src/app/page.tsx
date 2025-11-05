@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 
 export default function Home() {
   const router = useRouter();
@@ -10,7 +10,7 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const supabase = createClient();
+        const supabase = createBrowserClient();
         const { data: { user }, error } = await supabase.auth.getUser();
         
         // Manejar el error AuthSessionMissingError

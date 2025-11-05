@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,12 +26,15 @@ import {
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
+import { HabitRecordModal } from '@/components/habit-record-modal';
 
 export default function HabitsPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitRecords, setHabitRecords] = useState<HabitRecord[]>([]);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
+  const [recordModalOpen, setRecordModalOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -61,7 +64,7 @@ export default function HabitsPage() {
   const fetchHabits = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('habits')
       .select('*')
@@ -84,7 +87,7 @@ export default function HabitsPage() {
   const fetchHabitRecords = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('habit_records')
       .select('*')
@@ -105,7 +108,7 @@ export default function HabitsPage() {
   };
 
   const handleDelete = async (habitId: string) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase.from('habits').delete().eq('id', habitId);
 
     if (error) {
@@ -122,6 +125,16 @@ export default function HabitsPage() {
       });
       setHabits(habits.filter((habit) => habit.id !== habitId));
     }
+  };
+
+  const handleRecordHabit = (habit: Habit) => {
+    setSelectedHabit(habit);
+    setRecordModalOpen(true);
+  };
+
+  const handleRecordSuccess = () => {
+    // Refresh habits records after successful recording
+    fetchHabitRecords();
   };
 
   const getHabitProgress = (habit: Habit) => {
@@ -295,7 +308,11 @@ export default function HabitsPage() {
                             : 'En progreso'}
                         </span>
                       </div>
-                      <Button variant='outline' size='sm'>
+                      <Button
+                        variant='outline'
+                        size='sm'
+                        onClick={() => handleRecordHabit(habit)}
+                      >
                         Registrar
                       </Button>
                     </div>
@@ -318,6 +335,14 @@ export default function HabitsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Modal para registrar hábitos */}
+      <HabitRecordModal
+        habit={selectedHabit}
+        open={recordModalOpen}
+        onOpenChange={setRecordModalOpen}
+        onSuccess={handleRecordSuccess}
+      />
     </>
   );
 }

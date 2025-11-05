@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
+import { habitSchema } from '@/lib/validations/habit';
+import { z } from 'zod';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -41,7 +43,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -49,7 +51,19 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, description, category, target_frequency, unit } = body;
+    
+    // Validar parcialmente solo los campos que se están actualizando
+    const updateSchema = habitSchema.partial();
+    const validationResult = updateSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: validationResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { title, description, category, target_frequency, unit, points_value } = validationResult.data;
 
     // Verificar que el hábito pertenece a un hijo del usuario
     const { data: habit, error: habitError } = await supabase
@@ -69,11 +83,13 @@ export async function PUT(
     const { data, error } = await supabase
       .from('habits')
       .update({
-        title,
-        description,
-        category,
-        target_frequency: target_frequency ? parseInt(target_frequency) : undefined,
-        unit,
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(category !== undefined && { category }),
+        ...(target_frequency !== undefined && { target_frequency }),
+        ...(unit !== undefined && { unit }),
+        ...(points_value !== undefined && { points_value }),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', params.id)
       .select()
@@ -97,7 +113,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

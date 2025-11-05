@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,7 +63,7 @@ export default function EditRewardPage() {
     if (!params.id || !selectedChild) return;
 
     setLoadingReward(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const { data, error } = await supabase
       .from('rewards')
@@ -148,7 +148,7 @@ export default function EditRewardPage() {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       const validatedData = validationResult.data;
 
       const { error: updateError } = await supabase

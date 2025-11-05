@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +26,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAppStore } from '@/store/app-store';
 import { useToast } from '@/hooks/use-toast';
 import { createRoutineSchema } from '@/lib/validations/routine';
+import { RoutineHabitsList } from '@/components/routine-habits-list';
+import { AddHabitModal } from '@/components/add-habit-modal';
+import { getAssignedHabits, getAvailableHabits } from '@/lib/routine-habits-service';
+import { RoutineHabitAssignment, HabitWithSelection } from '@/types/routine-habits';
 import { ArrowLeft, Clock, Save, Award } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -55,6 +59,13 @@ export default function EditRoutinePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingRoutine, setLoadingRoutine] = useState(true);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
+  
+  // Estados para la gestión de hábitos
+  const [assignedHabits, setAssignedHabits] = useState<RoutineHabitAssignment[]>([]);
+  const [availableHabits, setAvailableHabits] = useState<HabitWithSelection[]>([]);
+  const [isHabitsLoading, setIsHabitsLoading] = useState(false);
+  const [showAddHabitModal, setShowAddHabitModal] = useState(false);
+  
   const router = useRouter();
   const params = useParams();
 
@@ -80,11 +91,57 @@ export default function EditRoutinePage() {
     }
   }, [params.id, selectedChild]);
 
+  // Cargar hábitos cuando se carga la rutina
+  useEffect(() => {
+    if (params.id && selectedChild) {
+      loadAssignedHabits(params.id as string);
+      loadAvailableHabits();
+    }
+  }, [params.id, selectedChild]);
+
+  const loadAssignedHabits = async (routineId: string) => {
+    setIsHabitsLoading(true);
+    try {
+      const habits = await getAssignedHabits(routineId);
+      setAssignedHabits(habits);
+    } catch (error) {
+      console.error('Error loading assigned habits:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los hábitos asignados',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsHabitsLoading(false);
+    }
+  };
+
+  const loadAvailableHabits = async () => {
+    if (!selectedChild) return;
+    
+    try {
+      const habits = await getAvailableHabits(selectedChild.id);
+      const habitsWithSelection: HabitWithSelection[] = habits.map(habit => ({
+        ...habit,
+        selected: false,
+        assigned: false,
+      }));
+      setAvailableHabits(habitsWithSelection);
+    } catch (error) {
+      console.error('Error loading available habits:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los hábitos disponibles',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const fetchRoutine = async () => {
     if (!params.id || !selectedChild) return;
 
     setLoadingRoutine(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const { data, error } = await supabase
       .from('routines')
@@ -157,7 +214,7 @@ export default function EditRoutinePage() {
       const validatedData = createRoutineSchema.parse(formData);
 
       try {
-        const supabase = createClient();
+        const supabase = createBrowserClient();
 
         const { error: updateError } = await supabase
           .from('routines')
@@ -481,6 +538,37 @@ export default function EditRoutinePage() {
                 </p>
               </div>
             )}
+
+            {/* Sección de Hábitos Asignados */}
+            <div className='space-y-4'>
+              <RoutineHabitsList
+                routineId={params.id as string}
+                assignedHabits={assignedHabits}
+                onRefresh={() => {
+                  if (params.id) {
+                    loadAssignedHabits(params.id as string);
+                  }
+                }}
+                onAddHabit={() => setShowAddHabitModal(true)}
+                isLoading={isHabitsLoading}
+              />
+              
+              <AddHabitModal
+                routineId={params.id as string}
+                childId={selectedChild?.id || ''}
+                availableHabits={availableHabits.filter(h =>
+                  !assignedHabits.some(ah => ah.habit_id === h.id)
+                )}
+                onClose={() => setShowAddHabitModal(false)}
+                onSuccess={() => {
+                  setShowAddHabitModal(false);
+                  if (params.id) {
+                    loadAssignedHabits(params.id as string);
+                  }
+                }}
+                trigger={undefined}
+              />
+            </div>
 
             <div className='flex justify-end space-x-4'>
               <Link href='/routines'>

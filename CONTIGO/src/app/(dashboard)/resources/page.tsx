@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { extractFirstParagraphText } from '@/lib/utils';
 import {
   Card,
@@ -50,7 +50,7 @@ export default function ResourcesPage() {
   }, [user, router]);
 
   const fetchResources = async () => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('resources')
       .select('*')

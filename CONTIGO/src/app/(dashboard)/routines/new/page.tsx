@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,7 +26,11 @@ import { AlertDescription } from '@/components/ui/alert';
 import { useAppStore } from '@/store/app-store';
 import { useToast } from '@/hooks/use-toast';
 import { createRoutineSchema } from '@/lib/validations/routine';
-import { ArrowLeft, Clock, Award } from 'lucide-react';
+import { RoutineHabitsList } from '@/components/routine-habits-list';
+import { AddHabitModal } from '@/components/add-habit-modal';
+import { getAssignedHabits, getAvailableHabits } from '@/lib/routine-habits-service';
+import { RoutineHabitAssignment, HabitWithSelection } from '@/types/routine-habits';
+import { ArrowLeft, Clock, Award, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
@@ -53,7 +57,63 @@ export default function NewRoutinePage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
+  
+  // Estados para la gestión de hábitos
+  const [assignedHabits, setAssignedHabits] = useState<RoutineHabitAssignment[]>([]);
+  const [availableHabits, setAvailableHabits] = useState<HabitWithSelection[]>([]);
+  const [isHabitsLoading, setIsHabitsLoading] = useState(false);
+  const [showAddHabitModal, setShowAddHabitModal] = useState(false);
+  const [newRoutineId, setNewRoutineId] = useState<string | null>(null);
+  
   const router = useRouter();
+
+  // Cargar hábitos disponibles cuando se selecciona un niño
+  useEffect(() => {
+    if (selectedChild) {
+      loadAvailableHabits();
+    }
+  }, [selectedChild]);
+
+  const loadAvailableHabits = async () => {
+    if (!selectedChild) return;
+    
+    setIsHabitsLoading(true);
+    try {
+      const habits = await getAvailableHabits(selectedChild.id);
+      const habitsWithSelection: HabitWithSelection[] = habits.map(habit => ({
+        ...habit,
+        selected: false,
+        assigned: false,
+      }));
+      setAvailableHabits(habitsWithSelection);
+    } catch (error) {
+      console.error('Error loading available habits:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los hábitos disponibles',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsHabitsLoading(false);
+    }
+  };
+
+  const loadAssignedHabits = async (routineId: string) => {
+    setIsHabitsLoading(true);
+    try {
+      const habits = await getAssignedHabits(routineId);
+      setAssignedHabits(habits);
+    } catch (error) {
+      console.error('Error loading assigned habits:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los hábitos asignados',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsHabitsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +145,7 @@ export default function NewRoutinePage() {
       const validatedData = createRoutineSchema.parse(formData);
 
       try {
-        const supabase = createClient();
+        const supabase = createBrowserClient();
 
         const { data, error: insertError } = await supabase
           .from('routines')
@@ -118,6 +178,9 @@ export default function NewRoutinePage() {
           variant: 'success',
         });
 
+        // Guardar el ID de la nueva rutina para poder asignar hábitos
+        setNewRoutineId(data.id);
+        
         // Redirigir a la página de rutinas
         router.push('/routines');
       } catch (err) {
@@ -360,6 +423,39 @@ export default function NewRoutinePage() {
                 </p>
               </div>
             )}
+
+            {/* Sección de Hábitos Asignados */}
+            <div className='space-y-4'>
+              <RoutineHabitsList
+                routineId={newRoutineId || ''}
+                assignedHabits={assignedHabits}
+                onRefresh={() => {
+                  if (newRoutineId) {
+                    loadAssignedHabits(newRoutineId);
+                  }
+                }}
+                onAddHabit={() => setShowAddHabitModal(true)}
+                isLoading={isHabitsLoading}
+              />
+              
+              {newRoutineId && (
+                <AddHabitModal
+                  routineId={newRoutineId}
+                  childId={selectedChild?.id || ''}
+                  availableHabits={availableHabits.filter(h =>
+                    !assignedHabits.some(ah => ah.habit_id === h.id)
+                  )}
+                  onClose={() => setShowAddHabitModal(false)}
+                  onSuccess={() => {
+                    setShowAddHabitModal(false);
+                    if (newRoutineId) {
+                      loadAssignedHabits(newRoutineId);
+                    }
+                  }}
+                  trigger={undefined}
+                />
+              )}
+            </div>
 
             <div className='flex justify-end space-x-4'>
               <Link href='/routines'>

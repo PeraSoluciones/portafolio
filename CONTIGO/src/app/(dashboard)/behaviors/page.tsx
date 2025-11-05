@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -75,7 +75,7 @@ export default function BehaviorsPage() {
   const fetchBehaviors = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('behaviors')
       .select('*')
@@ -98,7 +98,7 @@ export default function BehaviorsPage() {
   const fetchBehaviorRecords = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('behavior_records')
       .select('*')
@@ -145,7 +145,7 @@ export default function BehaviorsPage() {
   };
 
   const handleDeleteRecord = async (recordId: string) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase
       .from('behavior_records')
       .delete()
@@ -170,7 +170,7 @@ export default function BehaviorsPage() {
   };
 
   const handleDelete = async (behaviorId: string) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase
       .from('behaviors')
       .delete()
@@ -214,7 +214,7 @@ export default function BehaviorsPage() {
       .filter((b) => b.type === type)
       .reduce((total, behavior) => {
         const records = getWeeklyRecords(behavior.id);
-        return total + records.length * behavior.points;
+        return total + records.length * behavior.points_value;
       }, 0);
   };
 
@@ -367,7 +367,7 @@ export default function BehaviorsPage() {
                         >
                           <div className='font-semibold'>
                             {behavior.type === 'POSITIVE' ? '+' : '-'}
-                            {behavior.points} pts
+                            {behavior.points_value} pts
                           </div>
                           <div className='text-xs opacity-75'>
                             {behavior.type === 'POSITIVE'
@@ -516,7 +516,7 @@ export default function BehaviorsPage() {
                         )}
                         <span className='font-medium'>
                           {behavior.type === 'POSITIVE' ? '+' : '-'}
-                          {behavior.points} pts
+                          {behavior.points_value} pts
                         </span>
                       </div>
                     </div>

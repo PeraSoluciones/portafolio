@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,7 +91,7 @@ export default function EditBehaviorPage() {
     if (!params.id || !selectedChild) return;
 
     setLoadingBehavior(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const { data, error } = await supabase
       .from('behaviors')
@@ -178,7 +178,7 @@ export default function EditBehaviorPage() {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
 
       const { error: updateError } = await supabase
         .from('behaviors')
@@ -186,7 +186,7 @@ export default function EditBehaviorPage() {
           title: validationResult.data.title,
           description: validationResult.data.description,
           type: validationResult.data.type,
-          points: validationResult.data.points,
+          points: validationResult.data.points_value,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id)

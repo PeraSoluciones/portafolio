@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -52,7 +52,7 @@ export default function RoutinesPage() {
   const fetchRoutines = async () => {
     if (!selectedChild) return;
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('routines')
       .select('*')
@@ -73,7 +73,7 @@ export default function RoutinesPage() {
   };
 
   const toggleRoutineStatus = async (routineId: string, isActive: boolean) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase
       .from('routines')
       .update({ is_active: isActive })
@@ -106,7 +106,7 @@ export default function RoutinesPage() {
       return;
     }
 
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { error } = await supabase
       .from('routines')
       .delete()

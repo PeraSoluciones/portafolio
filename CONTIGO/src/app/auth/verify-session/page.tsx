@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/store/app-store';
 
 export default function VerifySessionPage() {
@@ -15,7 +15,7 @@ export default function VerifySessionPage() {
   useEffect(() => {
     const verifySession = async () => {
       try {
-        const supabase = createClient();
+        const supabase = createBrowserClient();
         
         // Obtener la sesión actual
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();

@@ -1,10 +1,14 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient as _createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-export async function createClient() {
+/**
+ * Cliente de Supabase para Server Components y Server Actions
+ * Usa cookies() de next/headers y solo debe usarse en Server Components y Server Actions
+ */
+export async function createServerClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return _createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -34,7 +38,7 @@ export function createAdminClient() {
       'NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY is not set in .env.local'
     );
   }
-  return createServerClient(
+  return _createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY,
     {

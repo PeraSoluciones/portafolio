@@ -20,6 +20,9 @@ CREATE TABLE children (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Agregar columna de saldo de puntos a la tabla hijos
+ALTER TABLE children ADD COLUMN points_balance INTEGER DEFAULT 0 CHECK (points_balance >= 0);
+
 -- Crear tabla de rutinas
 CREATE TABLE routines (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -69,6 +72,9 @@ CREATE TABLE behaviors (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Cambiar el nombre de la columna points a points_value y mantener compatibilidad
+ALTER TABLE behaviors RENAME COLUMN points TO points_value;
+
 -- Crear tabla de registros de comportamientos
 CREATE TABLE behavior_records (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -96,6 +102,29 @@ CREATE TABLE reward_claims (
   reward_id UUID NOT NULL REFERENCES rewards(id) ON DELETE CASCADE,
   claimed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   notes TEXT
+);
+
+-- Crear tabla de transacciones de puntos
+CREATE TABLE points_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
+  transaction_type TEXT NOT NULL CHECK (transaction_type IN ('BEHAVIOR', 'HABIT', 'ROUTINE', 'REWARD_REDEMPTION', 'ADJUSTMENT')),
+  related_id UUID, -- ID del comportamiento, hábito, rutina o recompensa relacionada
+  points INTEGER NOT NULL, -- Positivo para ganancia, negativo para pérdida
+  description TEXT NOT NULL,
+  balance_after INTEGER NOT NULL, -- Saldo después de la transacción
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Crear tabla de hábitos de rutina (conexión entre rutinas y hábitos con puntos)
+CREATE TABLE routine_habits (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  routine_id UUID NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+  habit_id UUID NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+  points_value INTEGER DEFAULT 0,
+  is_required BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(routine_id, habit_id)
 );
 
 -- Crear tabla de recursos educativos
@@ -141,6 +170,12 @@ CREATE TRIGGER update_rewards_updated_at BEFORE UPDATE ON rewards
 CREATE TRIGGER update_resources_updated_at BEFORE UPDATE ON resources
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_points_transactions_updated_at BEFORE UPDATE ON points_transactions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_routine_habits_updated_at BEFORE UPDATE ON routine_habits
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Crear políticas RLS (Row Level Security)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE children ENABLE ROW LEVEL SECURITY;
@@ -151,6 +186,8 @@ ALTER TABLE behaviors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE behavior_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rewards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reward_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE points_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE routine_habits ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para usuarios
 CREATE POLICY "Users can view own profile" ON users
@@ -413,6 +450,66 @@ CREATE POLICY "Parents can insert their children's reward claims" ON reward_clai
         )
     );
 
+-- Políticas para transacciones de puntos
+CREATE POLICY "Parents can view their children's point transactions" ON points_transactions
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM children
+            WHERE children.id = points_transactions.child_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Parents can insert their children's point transactions" ON points_transactions
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM children
+            WHERE children.id = points_transactions.child_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
+-- Políticas para hábitos de rutina
+CREATE POLICY "Parents can view their children's routine habits" ON routine_habits
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM routines
+            JOIN children ON children.id = routines.child_id
+            WHERE routines.id = routine_habits.routine_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Parents can insert their children's routine habits" ON routine_habits
+    FOR INSERT WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM routines
+            JOIN children ON children.id = routines.child_id
+            WHERE routines.id = routine_habits.routine_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Parents can update their children's routine habits" ON routine_habits
+    FOR UPDATE USING (
+        EXISTS (
+            SELECT 1 FROM routines
+            JOIN children ON children.id = routines.child_id
+            WHERE routines.id = routine_habits.routine_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Parents can delete their children's routine habits" ON routine_habits
+    FOR DELETE USING (
+        EXISTS (
+            SELECT 1 FROM routines
+            JOIN children ON children.id = routines.child_id
+            WHERE routines.id = routine_habits.routine_id
+            AND children.parent_id = auth.uid()
+        )
+    );
+
 -- Políticas para recursos (todos pueden ver los recursos activos)
 CREATE POLICY "Everyone can view active resources" ON resources
     FOR SELECT USING (is_active = true);
@@ -431,6 +528,260 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- Función para crear transacción de puntos y actualizar saldo del niño
+CREATE OR REPLACE FUNCTION create_points_transaction(
+  p_child_id UUID,
+  p_transaction_type TEXT,
+  p_related_id UUID,
+  p_points INTEGER,
+  p_description TEXT
+)
+RETURNS VOID AS $$
+DECLARE
+  current_balance INTEGER;
+  new_balance INTEGER;
+BEGIN
+  -- Obtener el saldo actual del niño
+  SELECT points_balance INTO current_balance
+  FROM children
+  WHERE id = p_child_id;
+  
+  -- Calcular el nuevo saldo
+  new_balance := current_balance + p_points;
+  
+  -- Verificar que el saldo no sea negativo
+  IF new_balance < 0 THEN
+    RAISE EXCEPTION 'Saldo de puntos insuficiente';
+  END IF;
+  
+  -- Actualizar el saldo del niño
+  UPDATE children
+  SET points_balance = new_balance
+  WHERE id = p_child_id;
+  
+  -- Crear la transacción de puntos
+  INSERT INTO points_transactions (
+    child_id,
+    transaction_type,
+    related_id,
+    points,
+    description,
+    balance_after
+  ) VALUES (
+    p_child_id,
+    p_transaction_type,
+    p_related_id,
+    p_points,
+    p_description,
+    new_balance
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger para asignar puntos cuando se registra un comportamiento
+CREATE OR REPLACE FUNCTION award_behavior_points()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Obtener los detalles del comportamiento
+  DECLARE
+    behavior_points INTEGER;
+    child_id UUID;
+  BEGIN
+    SELECT b.points_value, b.child_id INTO behavior_points, child_id
+    FROM behaviors b
+    WHERE b.id = NEW.behavior_id;
+    
+    -- Crear transacción de puntos
+    PERFORM create_points_transaction(
+      child_id,
+      'BEHAVIOR',
+      NEW.behavior_id,
+      behavior_points,
+      'Puntos por comportamiento: ' || (SELECT title FROM behaviors WHERE id = NEW.behavior_id)
+    );
+    
+    RETURN NEW;
+  END;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger para asignar puntos cuando se registra un hábito
+CREATE OR REPLACE FUNCTION award_habit_points()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Verificar si el hábito tiene puntos asignados a través de rutinas
+  DECLARE
+    total_points INTEGER := 0;
+    habit_child_id UUID;
+    habit_title TEXT;
+  BEGIN
+    -- Obtener información del hábito
+    SELECT h.child_id, h.title INTO habit_child_id, habit_title
+    FROM habits h
+    WHERE h.id = NEW.habit_id;
+    
+    -- Sumar puntos de todas las rutinas que incluyen este hábito
+    SELECT COALESCE(SUM(rh.points_value), 0) INTO total_points
+    FROM routine_habits rh
+    JOIN routines r ON r.id = rh.routine_id
+    WHERE rh.habit_id = NEW.habit_id
+    AND r.is_active = true
+    AND rh.points_value > 0;
+    
+    -- Si hay puntos asignados, crear la transacción
+    IF total_points > 0 THEN
+      PERFORM create_points_transaction(
+        habit_child_id,
+        'HABIT',
+        NEW.habit_id,
+        total_points,
+        'Puntos por hábito completado: ' || habit_title
+      );
+    END IF;
+    
+    RETURN NEW;
+  END;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger para descontar puntos cuando se reclama una recompensa
+CREATE OR REPLACE FUNCTION deduct_reward_points()
+RETURNS TRIGGER AS $$
+BEGIN
+  DECLARE
+    reward_points INTEGER;
+    child_id UUID;
+    reward_title TEXT;
+  BEGIN
+    -- Obtener detalles de la recompensa
+    SELECT r.points_required, r.child_id, r.title INTO reward_points, child_id, reward_title
+    FROM rewards r
+    WHERE r.id = NEW.reward_id;
+    
+    -- Crear transacción de puntos (negativa)
+    PERFORM create_points_transaction(
+      child_id,
+      'REWARD_REDEMPTION',
+      NEW.reward_id,
+      -reward_points,
+      'Canjeo de recompensa: ' || reward_title
+    );
+    
+    RETURN NEW;
+  END;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Crear los triggers automáticos
+CREATE TRIGGER award_behavior_points_trigger
+  AFTER INSERT ON behavior_records
+  FOR EACH ROW EXECUTE FUNCTION award_behavior_points();
+
+CREATE TRIGGER award_habit_points_trigger
+  AFTER INSERT ON habit_records
+  FOR EACH ROW EXECUTE FUNCTION award_habit_points();
+
+CREATE TRIGGER deduct_reward_points_trigger
+  AFTER INSERT ON reward_claims
+  FOR EACH ROW EXECUTE FUNCTION deduct_reward_points();
+
+-- Función para obtener el balance de puntos actual de un niño
+CREATE OR REPLACE FUNCTION get_child_points_balance(p_child_id UUID)
+RETURNS INTEGER AS $$
+BEGIN
+  RETURN points_balance FROM children WHERE id = p_child_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para obtener el historial de transacciones con más detalles
+CREATE OR REPLACE FUNCTION get_child_points_history(
+  p_child_id UUID, 
+  p_limit INTEGER DEFAULT 50,
+  p_offset INTEGER DEFAULT 0
+)
+RETURNS TABLE (
+  id UUID,
+  transaction_type TEXT,
+  related_id UUID,
+  related_title TEXT,
+  points INTEGER,
+  description TEXT,
+  balance_before INTEGER,
+  balance_after INTEGER,
+  created_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH transactions_with_balance AS (
+    SELECT
+      pt.id AS id,
+      pt.child_id AS child_id,
+      pt.transaction_type AS transaction_type,
+      pt.related_id AS related_id,
+      pt.points AS points,
+      pt.description AS description,
+      pt.balance_after AS balance_after,
+      LAG(pt.balance_after, 1, 0) OVER (ORDER BY pt.created_at) AS balance_before,
+      pt.created_at AS created_at
+    FROM public.points_transactions pt
+    WHERE pt.child_id = p_child_id
+    ORDER BY pt.created_at DESC
+    LIMIT p_limit
+    OFFSET p_offset
+  )
+  SELECT
+    twb.id,
+    twb.transaction_type,
+    twb.related_id,
+    CASE
+      WHEN twb.transaction_type = 'BEHAVIOR' THEN (
+        SELECT b.title FROM public.behaviors b WHERE b.id = twb.related_id
+      )
+      WHEN twb.transaction_type = 'HABIT' THEN (
+        SELECT h.title FROM public.habits h WHERE h.id = twb.related_id
+      )
+      WHEN twb.transaction_type = 'REWARD_REDEMPTION' THEN (
+        SELECT r.title FROM public.rewards r WHERE r.id = twb.related_id
+      )
+      ELSE NULL
+    END AS related_title,
+    twb.points,
+    twb.description,
+    twb.balance_before,
+    twb.balance_after,
+    twb.created_at
+  FROM transactions_with_balance twb;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para ajustar manualmente los puntos de un niño (solo para padres)
+CREATE OR REPLACE FUNCTION adjust_child_points(
+  p_child_id UUID,
+  p_points INTEGER,
+  p_description TEXT
+)
+RETURNS VOID AS $$
+BEGIN
+  -- Verificar que el usuario actual sea el padre del niño
+  IF NOT EXISTS (
+    SELECT 1 FROM children
+    WHERE id = p_child_id
+    AND parent_id = auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'No tienes permiso para ajustar los puntos de este niño';
+  END IF;
+  
+  -- Crear la transacción de ajuste
+  PERFORM create_points_transaction(
+    p_child_id,
+    'ADJUSTMENT',
+    NULL,
+    p_points,
+    COALESCE(p_description, 'Ajuste manual de puntos')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Insertar recursos educativos iniciales
 INSERT INTO resources (title, content, category, type) VALUES

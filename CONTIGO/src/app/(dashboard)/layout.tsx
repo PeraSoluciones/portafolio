@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default async function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   
   const {
     data: { user },

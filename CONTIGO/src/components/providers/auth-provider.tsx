@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import { useAppStore } from '@/store/app-store';
 
@@ -70,7 +70,7 @@ export function AuthProvider({ session, children }: AuthProviderProps) {
 
   // Escuchar cambios en el estado de autenticación en el cliente
   useEffect(() => {
-    const { data: { subscription } } = createClient().auth.onAuthStateChange(
+    const { data: { subscription } } = createBrowserClient().auth.onAuthStateChange(
       async (event, session) => {
         // El evento SIGNED_IN es ahora la fuente de verdad para cargar los hijos.
         if (event === 'SIGNED_IN' && session?.user) {

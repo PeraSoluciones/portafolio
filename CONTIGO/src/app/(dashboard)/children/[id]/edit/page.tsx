@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,7 +99,7 @@ export default function EditChildPage() {
     if (!params.id || childLoaded) return;
 
     setLoadingChild(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const { data, error } = await supabase
       .from('children')
@@ -192,7 +192,7 @@ export default function EditChildPage() {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       let avatarUrl = formData.avatar_url;
 
       if (selectedAvatarFile) {

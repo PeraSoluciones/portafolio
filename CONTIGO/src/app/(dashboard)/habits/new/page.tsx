@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Target, Award } from 'lucide-react';
+import { ArrowLeft, Target, Award, Star } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { habitSchema, type HabitFormValues } from '@/lib/validations/habit';
@@ -70,6 +70,7 @@ export default function NewHabitPage() {
     category: '',
     target_frequency: '',
     unit: '',
+    points_value: '',
   });
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof HabitFormValues, string>>
@@ -169,7 +170,7 @@ export default function NewHabitPage() {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       const validatedData = validationResult.data;
 
       const { data, error: insertError } = await supabase
@@ -182,6 +183,7 @@ export default function NewHabitPage() {
             category: validatedData.category,
             target_frequency: validatedData.target_frequency,
             unit: validatedData.unit,
+            points_value: validatedData.points_value,
           },
         ])
         .select()
@@ -419,6 +421,34 @@ export default function NewHabitPage() {
                     {getUnitSuggestions(formData.category).join(', ')}
                   </div>
                 )}
+              </div>
+ 
+              <div className='space-y-2'>
+                <Label htmlFor='points_value'>Valor de puntos</Label>
+                <div className='flex items-center space-x-2'>
+                  <Star className='h-4 w-4 text-yellow-500' />
+                  <Input
+                    id='points_value'
+                    type='number'
+                    value={formData.points_value}
+                    onChange={(e) =>
+                      handleInputChange('points_value', e.target.value)
+                    }
+                    min='0'
+                    placeholder='5'
+                    className={
+                      fieldErrors.points_value ? 'border-red-500' : ''
+                    }
+                  />
+                </div>
+                {fieldErrors.points_value && (
+                  <p className='text-sm text-red-500'>
+                    {fieldErrors.points_value}
+                  </p>
+                )}
+                <p className='text-xs text-gray-500'>
+                  Puntos que se otorgarán al completar este hábito
+                </p>
               </div>
             </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { useAppStore } from '@/store/app-store';
 import {
   Card,
@@ -14,6 +14,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PointsBadge } from '@/components/ui/points-badge';
+import { PointsHistory } from '@/components/points-history';
 import {
   Calendar,
   Target,
@@ -70,39 +72,17 @@ export default function DashboardPage() {
 
   const fetchChildrenDirectly = async () => {
     if (!user) return;
-
-    try {
-      const response = await fetch('/api/children', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API error:', errorData);
-        throw new Error(errorData.error || 'Failed to fetch children');
-      }
-
-      const children = await response.json();
-
-      if (children && children.length > 0) {
-        const { setChildren } = useAppStore.getState();
-        setChildren(children);
-
-        // Si hay hijos y no hay uno seleccionado, seleccionar el primero
-        if (!selectedChild) {
-          const { setSelectedChild } = useAppStore.getState();
-          setSelectedChild(children[0]);
-        }
-      }
-    } catch (error) {
-      console.error('Exception fetching children via API:', error);
-    } finally {
-      setLoading(false);
+    
+    const { fetchChildrenWithPoints } = useAppStore.getState();
+    await fetchChildrenWithPoints();
+    
+    // Seleccionar el primer hijo si no hay uno seleccionado
+    const { children, setSelectedChild, selectedChild } = useAppStore.getState();
+    if (children.length > 0 && !selectedChild) {
+      setSelectedChild(children[0]);
     }
+    
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -115,7 +95,7 @@ export default function DashboardPage() {
     if (!selectedChild) return;
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
 
       // Obtener rutinas
       const { data: routinesData, error: routinesError } = await supabase
@@ -272,15 +252,30 @@ export default function DashboardPage() {
                 <p className='text-sm text-muted-foreground'>
                   {calculateAge(selectedChild?.birth_date || '')} años
                 </p>
-                <Badge
-                  variant='outline'
-                  className={cn(
-                    'mt-1',
-                    getADHDTypeColor(selectedChild?.adhd_type || '')
-                  )}
-                >
-                  {getADHDTypeLabel(selectedChild?.adhd_type || '')}
-                </Badge>
+                <div className='flex items-center gap-2 mt-2'>
+                  <Badge
+                    variant='outline'
+                    className={cn(
+                      getADHDTypeColor(selectedChild?.adhd_type || '')
+                    )}
+                  >
+                    {getADHDTypeLabel(selectedChild?.adhd_type || '')}
+                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <PointsBadge
+                      points={selectedChild?.points_balance || 0}
+                      size='sm'
+                      variant='secondary'
+                    />
+                    {selectedChild && (
+                      <PointsHistory
+                        childId={selectedChild.id}
+                        childName={selectedChild.name}
+                        currentBalance={selectedChild.points_balance || 0}
+                      />
+                    )}
+                  </div>
+                </div>
               </div>
               <div className='ml-auto'>
                 <Link href='/children'>
@@ -369,15 +364,26 @@ export default function DashboardPage() {
                     Ver todas
                   </Button>
                 </Link>
-                <Link href='/routines/new'>
-                  <Button
-                    size='sm'
-                    className='bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200'
-                  >
-                    <Plus className='h-4 w-4 mr-2' />
-                    Nueva
-                  </Button>
-                </Link>
+                <div className='flex items-center gap-2'>
+                  <Link href='/today'>
+                    <Button
+                      size='sm'
+                      className='bg-chart-4 hover:bg-chart-4/90 text-chart-4-foreground transition-colors duration-200'
+                    >
+                      <CheckCircle className='h-4 w-4 mr-2' />
+                      Hoy
+                    </Button>
+                  </Link>
+                  <Link href='/routines/new'>
+                    <Button
+                      size='sm'
+                      className='bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200'
+                    >
+                      <Plus className='h-4 w-4 mr-2' />
+                      Nueva
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Behavior, BehaviorRecord } from '@/types/index';
 import { Calendar, Save, X } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
@@ -67,7 +67,7 @@ export default function BehaviorRecordModal({
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       let error;
 
       if (behaviorRecord) {
@@ -214,7 +214,7 @@ export default function BehaviorRecordModal({
                   }`}
                 >
                   {behavior.type === 'POSITIVE' ? '+' : '-'}
-                  {behavior.points} pts
+                  {behavior.points_value} pts
                 </span>
               </div>
             </div>

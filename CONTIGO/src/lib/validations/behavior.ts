@@ -12,8 +12,10 @@ export const behaviorSchema = z.object({
     })
     .optional(),
   type: z.enum(['POSITIVE', 'NEGATIVE']),
-  points: z.coerce
+  points_value: z.coerce
     .number()
     .int({ message: 'Los puntos deben ser un número entero.' })
     .positive({ message: 'Los puntos deben ser un número positivo.' }),
 });
+
+export type BehaviorFormValues = z.infer<typeof behaviorSchema>;

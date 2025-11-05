@@ -32,7 +32,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/app-store';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -64,7 +64,7 @@ export function Sidebar() {
   };
 
   const handleSignOut = async () => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     await supabase.auth.signOut();
     clearStore();
     router.push('/login');

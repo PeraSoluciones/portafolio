@@ -1,7 +1,7 @@
-import { createClient } from './client';
+import { createBrowserClient } from './client';
 
 export async function uploadAvatar(file: File, userId: string): Promise<string> {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   
   // Generar un nombre de archivo único
   const fileExt = file.name.split('.').pop();
@@ -29,7 +29,7 @@ export async function uploadAvatar(file: File, userId: string): Promise<string> 
 }
 
 export async function deleteAvatar(avatarUrl: string): Promise<void> {
-  const supabase = createClient();
+  const supabase = createBrowserClient();
   
   // Extraer el nombre del archivo de la URL
   const urlParts = avatarUrl.split('/');

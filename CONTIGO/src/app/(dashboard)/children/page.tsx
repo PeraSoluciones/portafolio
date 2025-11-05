@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,6 +14,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore } from '@/store/app-store';
+import { PointsBadge } from '@/components/ui/points-badge';
+import { PointsHistory } from '@/components/points-history';
 import { Plus, Edit, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { deleteAvatar } from '@/lib/supabase/storage';
@@ -38,29 +40,15 @@ export default function ChildrenPage() {
 
   const fetchChildren = async () => {
     if (!user) return;
-
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from('children')
-      .select('*')
-      .eq('parent_id', user.id)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      toast({
-        title: 'Error al cargar hijos',
-        description: `No se pudieron cargar los hijos ${error.message}`,
-        variant: 'destructive',
-      });
-    } else {
-      setChildren(data || []);
-    }
-
+    
+    const { fetchChildrenWithPoints } = useAppStore.getState();
+    await fetchChildrenWithPoints();
+    
     setLoading(false);
   };
 
   const handleDelete = async (childId: string) => {
-    const supabase = createClient();
+    const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('children')
       .delete()
@@ -208,9 +196,21 @@ export default function ChildrenPage() {
                   <div className='space-y-3'>
                     <div>
                       <p className='text-sm text-gray-500'>Tipo de TDAH</p>
-                      <Badge variant='secondary'>
-                        {getADHDTypeLabel(child.adhd_type)}
-                      </Badge>
+                      <div className='flex items-center gap-2 flex-wrap'>
+                        <Badge variant='secondary'>
+                          {getADHDTypeLabel(child.adhd_type)}
+                        </Badge>
+                        <PointsBadge
+                          points={child.points_balance || 0}
+                          size='sm'
+                          variant='outline'
+                        />
+                        <PointsHistory
+                          childId={child.id}
+                          childName={child.name}
+                          currentBalance={child.points_balance || 0}
+                        />
+                      </div>
                     </div>
                     <div>
                       <p className='text-sm text-gray-500'>

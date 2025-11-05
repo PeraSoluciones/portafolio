@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/store/app-store';
-import { ArrowLeft, Target, Save, Award } from 'lucide-react';
+import { ArrowLeft, Target, Save, Award, Star } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { habitSchema, type HabitFormValues } from '@/lib/validations/habit';
@@ -69,6 +69,7 @@ export default function EditHabitPage() {
     category: '',
     target_frequency: '',
     unit: '',
+    points_value: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [loadingHabit, setLoadingHabit] = useState(true);
@@ -148,7 +149,7 @@ export default function EditHabitPage() {
     if (!params.id || !selectedChild) return;
 
     setLoadingHabit(true);
-    const supabase = createClient();
+    const supabase = createBrowserClient();
 
     const { data, error } = await supabase
       .from('habits')
@@ -170,6 +171,7 @@ export default function EditHabitPage() {
         category: data.category,
         target_frequency: data.target_frequency.toString(),
         unit: data.unit,
+        points_value: data.points_value.toString(),
       });
     }
 
@@ -222,7 +224,7 @@ export default function EditHabitPage() {
     }
 
     try {
-      const supabase = createClient();
+      const supabase = createBrowserClient();
       const validatedData = validationResult.data;
 
       const { error: updateError } = await supabase
@@ -233,6 +235,7 @@ export default function EditHabitPage() {
           category: validatedData.category,
           target_frequency: validatedData.target_frequency,
           unit: validatedData.unit,
+          points_value: validatedData.points_value,
           updated_at: new Date().toISOString(),
         })
         .eq('id', params.id)
@@ -486,6 +489,32 @@ export default function EditHabitPage() {
                     {getUnitSuggestions(formData.category).join(', ')}
                   </p>
                 )}
+              </div>
+ 
+              <div className='space-y-2'>
+                <Label htmlFor='points_value'>Valor de puntos</Label>
+                <div className='flex items-center space-x-2'>
+                  <Star className='h-4 w-4 text-yellow-500' />
+                  <Input
+                    id='points_value'
+                    type='number'
+                    value={formData.points_value}
+                    onChange={(e) =>
+                      handleInputChange('points_value', e.target.value)
+                    }
+                    min='0'
+                    placeholder='5'
+                    className={fieldErrors.points_value ? 'border-red-500' : ''}
+                  />
+                </div>
+                {fieldErrors.points_value && (
+                  <p className='text-sm text-red-500'>
+                    {fieldErrors.points_value}
+                  </p>
+                )}
+                <p className='text-xs text-gray-500'>
+                  Puntos que se otorgarán al completar este hábito
+                </p>
               </div>
             </div>
 
