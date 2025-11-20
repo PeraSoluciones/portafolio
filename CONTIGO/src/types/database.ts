@@ -170,3 +170,12 @@ export type PointsAdjustmentFormValues = {
   points: number;
   description: string;
 };
+
+export interface PointsStats {
+  total_earned: number;
+  total_spent: number;
+  current_balance: number;
+  habits_completed: number;
+  behaviors_recorded: number;
+  rewards_claimed: number;
+}

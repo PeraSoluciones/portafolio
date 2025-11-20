@@ -42,37 +42,52 @@ export function PointsBadge({
   const getVariantClasses = () => {
     switch (variant) {
       case 'secondary':
-        return points > 0 
-          ? 'bg-chart-5 text-chart-5-foreground border-chart-5' 
-          : 'bg-muted text-muted-foreground border-muted';
+        if (points > 0) {
+          return 'bg-chart-5 text-chart-5-foreground border-chart-5';
+        } else if (points < 0) {
+          return 'bg-destructive text-destructive-foreground border-destructive';
+        } else {
+          return 'bg-muted text-muted-foreground border-muted';
+        }
       case 'outline':
-        return points > 0 
-          ? 'border-chart-5 text-chart-5' 
-          : 'border-muted text-muted-foreground';
+        if (points > 0) {
+          return 'border-chart-5 text-chart-5-foreground bg-chart-5/10 hover:bg-chart-5/20';
+        } else if (points < 0) {
+          return 'border-destructive text-destructive bg-destructive/10 hover:bg-destructive/20';
+        } else {
+          return 'border-muted text-muted-foreground';
+        }
       default:
-        return points > 0 
-          ? 'bg-chart-5 text-chart-5-foreground' 
-          : 'bg-muted text-muted-foreground';
+        if (points > 0) {
+          return 'bg-chart-5 text-chart-5-foreground';
+        } else if (points < 0) {
+          return 'bg-destructive text-destructive-foreground';
+        } else {
+          return 'bg-muted text-muted-foreground';
+        }
     }
   };
 
   return (
-    <Badge 
+    <Badge
       className={cn(
         'flex items-center gap-1 font-semibold transition-all duration-200',
         getSizeClasses(),
         getVariantClasses(),
         className
       )}
+      data-testid="points-badge"
     >
       {showIcon && (
         points > 0 ? (
           <Trophy className={cn(getIconSize(), 'fill-current')} />
-        ) : (
+        ) : points < 0 ? (
           <Zap className={cn(getIconSize())} />
+        ) : (
+          <div className={cn(getIconSize(), 'rounded-full bg-current')} />
         )
       )}
-      {points} pts
+      {points > 0 ? `+${points}` : points} pts
     </Badge>
   );
 }

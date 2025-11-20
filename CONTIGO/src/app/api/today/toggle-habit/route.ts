@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { formatedCurrentDate } from '@/lib/utils';
 
 const toggleHabitSchema = z.object({
-  habit_id: z.string().uuid('ID de hábito inválido'),
+  habit_id: z.uuid('ID de hábito inválido'),
   is_completed: z.boolean(),
-  child_id: z.string().uuid('ID de hijo inválido'),
+  child_id: z.uuid('ID de hijo inválido'),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -57,12 +61,14 @@ export async function POST(request: NextRequest) {
 
     if (habitError || !habit) {
       return NextResponse.json(
-        { error: 'El hábito especificado no existe o no pertenece a este niño' },
+        {
+          error: 'El hábito especificado no existe o no pertenece a este niño',
+        },
         { status: 404 }
       );
     }
 
-    const todayDate = new Date().toISOString().split('T')[0];
+    const todayDate = formatedCurrentDate();
 
     if (is_completed) {
       // Marcar como completado (crear o actualizar registro)
@@ -128,7 +134,8 @@ export async function POST(request: NextRequest) {
           .select('points_value')
           .eq('habit_id', habit_id);
 
-        const totalPoints = pointsData?.reduce((sum, item) => sum + item.points_value, 0) || 0;
+        const totalPoints =
+          pointsData?.reduce((sum, item) => sum + item.points_value, 0) || 0;
 
         return NextResponse.json({
           success: true,
@@ -184,7 +191,8 @@ export async function POST(request: NextRequest) {
         .select('points_value')
         .eq('habit_id', habit_id);
 
-      const totalPoints = pointsData?.reduce((sum, item) => sum + item.points_value, 0) || 0;
+      const totalPoints =
+        pointsData?.reduce((sum, item) => sum + item.points_value, 0) || 0;
 
       return NextResponse.json({
         success: true,

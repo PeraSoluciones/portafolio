@@ -280,7 +280,7 @@ export default function NewChildPage() {
                 value={formData.adhd_type}
                 onValueChange={(value) => handleInputChange('adhd_type', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger id='adhd_type'>
                   <SelectValue placeholder='Selecciona el tipo de TDAH' />
                 </SelectTrigger>
                 <SelectContent>

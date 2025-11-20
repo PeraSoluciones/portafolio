@@ -28,10 +28,9 @@ import { cn } from '@/lib/utils';
 interface PointsHistoryProps {
   childId: string;
   childName: string;
-  currentBalance: number;
 }
 
-export function PointsHistory({ childId, childName, currentBalance }: PointsHistoryProps) {
+export function PointsHistory({ childId, childName }: PointsHistoryProps) {
   const [data, setData] = useState<PointsHistoryResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -147,13 +146,13 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
         <Button variant="outline" size="sm" className="gap-2">
           <Eye className="h-4 w-4" />
           Ver historial
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5" />
@@ -165,7 +164,7 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
         </DialogHeader>
 
         {data && (
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col grow min-h-0">
             {/* Resumen de puntos */}
             <Card>
               <CardContent className="pt-6">
@@ -175,19 +174,19 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
                     <p className="text-sm text-muted-foreground">Ganados</p>
                   </div>
                   <div>
-                    <PointsBadge points={currentBalance} size="lg" />
+                    <PointsBadge points={data.balance} size="lg" />
                     <p className="text-sm text-muted-foreground mt-1">Balance actual</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-destructive">{data.stats.total_spent}</p>
-                    <p className="text-sm text-muted-foreground">Gastados</p>
+                    <p className="text-2xl font-bold text-destructive">{Math.abs(data.stats.total_spent)}</p>
+                    <p className="text-sm text-muted-foreground">Perdidos</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Pestañas de transacciones */}
-            <Tabs defaultValue="all" className="w-full">
+            <Tabs defaultValue="all" className="w-full flex flex-col grow min-h-0">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="all">Todas ({formattedTransactions.length})</TabsTrigger>
                 <TabsTrigger value="positive">
@@ -196,11 +195,11 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
                 </TabsTrigger>
                 <TabsTrigger value="negative">
                   <TrendingDown className="h-4 w-4 mr-1" />
-                  Gastadas ({negativeTransactions.length})
+                  Perdidas ({negativeTransactions.length})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="all" className="mt-4">
+              <TabsContent value="all" className="mt-4 grow overflow-y-auto">
                 <TransactionList
                   transactions={formattedTransactions}
                   onLoadMore={handleLoadMore}
@@ -209,7 +208,7 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
                 />
               </TabsContent>
 
-              <TabsContent value="positive" className="mt-4">
+              <TabsContent value="positive" className="mt-4 grow overflow-y-auto">
                 <TransactionList
                   transactions={positiveTransactions}
                   onLoadMore={() => {}}
@@ -218,7 +217,7 @@ export function PointsHistory({ childId, childName, currentBalance }: PointsHist
                 />
               </TabsContent>
 
-              <TabsContent value="negative" className="mt-4">
+              <TabsContent value="negative" className="mt-4 grow overflow-y-auto">
                 <TransactionList
                   transactions={negativeTransactions}
                   onLoadMore={() => {}}
@@ -256,13 +255,13 @@ function TransactionList({
   }
 
   return (
-    <ScrollArea className="h-[400px] pr-4">
+    <ScrollArea className="h-full pr-4">
       <div className="space-y-3">
         {transactions.map((transaction, index) => (
           <div key={transaction.id}>
             <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
               {/* Icono de la transacción */}
-              <div className="text-2xl flex-shrink-0 mt-1">
+              <div className="text-2xl shrink-0 mt-1">
                 {transaction.icon}
               </div>
 
@@ -288,7 +287,12 @@ function TransactionList({
                   {transaction.formattedDate}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Balance después: <span className="font-medium">{transaction.balance_after} pts</span>
+                  Balance después: <span className={cn(
+                    "font-medium",
+                    transaction.balance_after < 0 ? "text-destructive" :
+                    transaction.balance_after > 0 ? "text-success" :
+                    "text-muted-foreground"
+                  )}>{transaction.balance_after > 0 ? `+${transaction.balance_after}` : transaction.balance_after} pts</span>
                 </p>
               </div>
             </div>

@@ -18,16 +18,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Habit } from '@/types/database';
-import { HabitWithSelection } from '@/types/routine-habits';
 import { assignHabitToRoutine } from '@/lib/routine-habits-service';
-import {
-  Search,
-  Plus,
-  Loader2,
-  Star,
-  Filter,
-  CheckCircle
-} from 'lucide-react';
+import { Search, Plus, Loader2, Star, Filter, CheckCircle } from 'lucide-react';
+
+export interface HabitWithPoints extends Habit {
+  selected: boolean;
+  assigned: boolean;
+  pointsInRoutine: number; // Nuevo campo para puntos en la rutina
+}
 
 interface AddHabitModalProps {
   routineId: string;
@@ -35,6 +33,7 @@ interface AddHabitModalProps {
   availableHabits: Habit[];
   onClose: () => void;
   onSuccess: () => void;
+  onAssign?: (habits: HabitWithPoints[]) => void;
   trigger?: React.ReactNode;
 }
 
@@ -44,15 +43,17 @@ export function AddHabitModal({
   availableHabits,
   onClose,
   onSuccess,
-  trigger
+  onAssign,
+  trigger,
 }: AddHabitModalProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [habitsWithSelection, setHabitsWithSelection] = useState<HabitWithSelection[]>([]);
+  const [habitsWithSelection, setHabitsWithSelection] = useState<
+    HabitWithPoints[]
+  >([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedHabits, setSelectedHabits] = useState<Set<string>>(new Set());
 
   // Categorías disponibles
   const categories = [
@@ -65,46 +66,53 @@ export function AddHabitModal({
     { value: 'ORGANIZATION', label: 'Organización' },
   ];
 
-  // Inicializar los hábitos con estado de selección
+  // Inicializar los hábitos con estado de selección y puntos
   useEffect(() => {
-    const habits: HabitWithSelection[] = availableHabits.map(habit => ({
+    const habits: HabitWithPoints[] = availableHabits.map((habit) => ({
       ...habit,
       selected: false,
       assigned: false,
+      pointsInRoutine: habit.points_value || 0, // Usar el valor por defecto del hábito
     }));
     setHabitsWithSelection(habits);
   }, [availableHabits]);
 
   // Filtrar hábitos según búsqueda y categoría
-  const filteredHabits = habitsWithSelection.filter(habit => {
-    const matchesSearch = habit.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         (habit.description && habit.description.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || habit.category === selectedCategory;
+  const filteredHabits = habitsWithSelection.filter((habit) => {
+    const matchesSearch =
+      habit.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (habit.description &&
+        habit.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory =
+      selectedCategory === 'all' || habit.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   // Manejar selección de hábitos
   const handleHabitSelection = (habitId: string, checked: boolean) => {
-    setSelectedHabits(prev => {
-      const newSet = new Set(prev);
-      if (checked) {
-        newSet.add(habitId);
-      } else {
-        newSet.delete(habitId);
-      }
-      return newSet;
-    });
-
-    setHabitsWithSelection(prev => 
-      prev.map(habit => 
+    setHabitsWithSelection((prev) =>
+      prev.map((habit) =>
         habit.id === habitId ? { ...habit, selected: checked } : habit
+      )
+    );
+  };
+
+  // Manejar cambio en los puntos de un hábito
+  const handlePointsChange = (habitId: string, points: number) => {
+    setHabitsWithSelection((prev) =>
+      prev.map((habit) =>
+        habit.id === habitId ? { ...habit, pointsInRoutine: points } : habit
       )
     );
   };
 
   // Asignar hábitos seleccionados a la rutina
   const handleAssignHabits = async () => {
-    if (selectedHabits.size === 0) {
+    const selectedHabitsToAssign = habitsWithSelection.filter(
+      (h) => h.selected
+    );
+
+    if (selectedHabitsToAssign.length === 0) {
       toast({
         title: 'Selecciona hábitos',
         description: 'Debes seleccionar al menos un hábito para asignar',
@@ -113,18 +121,30 @@ export function AddHabitModal({
       return;
     }
 
+    // Si se proporciona onAssign, usarlo en lugar de guardar en DB directamente
+    if (onAssign) {
+      onAssign(selectedHabitsToAssign);
+      setOpen(false);
+      onClose();
+      onSuccess();
+      return;
+    }
+
     setIsSaving(true);
     let successCount = 0;
     let errorCount = 0;
 
     try {
-      // Asignar cada hábito seleccionado
-      for (const habitId of selectedHabits) {
+      // Asignar cada hábito seleccionado con sus puntos
+      for (const habit of selectedHabitsToAssign) {
         try {
-          await assignHabitToRoutine(routineId, habitId);
+          await assignHabitToRoutine(
+            routineId,
+            habit.id,
+            habit.pointsInRoutine // Pasar los puntos de la rutina
+          );
           successCount++;
         } catch (error) {
-          console.error(`Error assigning habit ${habitId}:`, error);
           errorCount++;
         }
       }
@@ -135,7 +155,7 @@ export function AddHabitModal({
           description: `${successCount} hábito(s) han sido asignados correctamente a la rutina`,
           variant: 'success',
         });
-        
+
         // Cerrar modal y actualizar lista
         setOpen(false);
         onClose();
@@ -150,7 +170,6 @@ export function AddHabitModal({
         });
       }
     } catch (error) {
-      console.error('Error assigning habits:', error);
       toast({
         title: 'Error',
         description: 'Ocurrió un error al asignar los hábitos',
@@ -187,50 +206,41 @@ export function AddHabitModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {trigger ? (
-        <DialogTrigger asChild>
-          {trigger}
-        </DialogTrigger>
-      ) : (
-        <DialogTrigger asChild>
-          <Button variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Añadir Hábito
-          </Button>
-        </DialogTrigger>
-      )}
-      
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+
+      <DialogContent className='sm:max-w-[600px] max-h-[80vh] flex flex-col'>
         <DialogHeader>
           <DialogTitle>Añadir Hábitos a la Rutina</DialogTitle>
           <DialogDescription>
             Selecciona los hábitos que quieres incluir en esta rutina
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="flex flex-col flex-1 overflow-hidden">
+
+        <div className='flex flex-col flex-1 overflow-hidden'>
           {/* Búsqueda y filtros */}
-          <div className="space-y-4 pb-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+          <div className='space-y-4 pb-4'>
+            <div className='relative'>
+              <Search className='absolute left-2 top-2.5 h-4 w-4 text-gray-400' />
               <Input
-                placeholder="Buscar hábitos..."
+                placeholder='Buscar hábitos...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
+                className='pl-8'
               />
             </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center space-x-1 text-sm text-gray-500">
-                <Filter className="h-4 w-4" />
+
+            <div className='flex flex-wrap gap-2'>
+              <div className='flex items-center space-x-1 text-sm text-gray-500'>
+                <Filter className='h-4 w-4' />
                 <span>Categoría:</span>
               </div>
               {categories.map((category) => (
                 <Badge
                   key={category.value}
-                  variant={selectedCategory === category.value ? "default" : "outline"}
-                  className="cursor-pointer"
+                  variant={
+                    selectedCategory === category.value ? 'default' : 'outline'
+                  }
+                  className='cursor-pointer'
                   onClick={() => setSelectedCategory(category.value)}
                 >
                   {category.label}
@@ -238,49 +248,49 @@ export function AddHabitModal({
               ))}
             </div>
           </div>
-          
+
           <Separator />
-          
+
           {/* Lista de hábitos */}
-          <ScrollArea className="flex-1">
+          <ScrollArea className='flex-1'>
             {filteredHabits.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                  <Search className="h-6 w-6 text-gray-400" />
+              <div className='text-center py-8'>
+                <div className='mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-4'>
+                  <Search className='h-6 w-6 text-gray-400' />
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className='text-lg font-medium text-gray-900 mb-2'>
                   No se encontraron hábitos
                 </h3>
-                <p className="text-gray-500">
+                <p className='text-gray-500'>
                   {searchQuery || selectedCategory !== 'all'
                     ? 'Intenta ajustar tu búsqueda o filtros'
                     : 'No hay hábitos disponibles para este niño'}
                 </p>
               </div>
             ) : (
-              <div className="space-y-3 p-1">
+              <div className='space-y-3 p-1'>
                 {filteredHabits.map((habit) => (
                   <div
                     key={habit.id}
                     className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors ${
-                      habit.selected 
-                        ? 'bg-blue-50 border-blue-200' 
+                      habit.selected
+                        ? 'bg-blue-50 border-blue-200'
                         : 'bg-white border-gray-200 hover:bg-gray-50'
                     }`}
                   >
                     <Checkbox
                       id={`habit-${habit.id}`}
                       checked={habit.selected}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         handleHabitSelection(habit.id, checked as boolean)
                       }
-                      className="mt-0.5"
+                      className='mt-0.5'
                     />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
+                    <div className='flex-1 min-w-0'>
+                      <div className='flex items-center space-x-2 mb-1'>
                         <Label
                           htmlFor={`habit-${habit.id}`}
-                          className="font-medium text-gray-900 cursor-pointer"
+                          className='font-medium text-gray-900 cursor-pointer'
                         >
                           {habit.title}
                         </Label>
@@ -288,30 +298,55 @@ export function AddHabitModal({
                           {getCategoryLabel(habit.category)}
                         </Badge>
                         {habit.selected && (
-                          <CheckCircle className="h-4 w-4 text-blue-500" />
+                          <CheckCircle className='h-4 w-4 text-blue-500' />
                         )}
                       </div>
                       {habit.description && (
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className='text-sm text-gray-600 mb-2'>
                           {habit.description}
                         </p>
                       )}
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
+                      <div className='flex items-center space-x-4 text-sm text-gray-500 mb-2'>
+                        <div className='flex items-center space-x-1'>
                           <span>Meta:</span>
-                          <span className="font-medium">
+                          <span className='font-medium'>
                             {habit.target_frequency} {habit.unit}
                           </span>
                         </div>
                         {habit.points_value > 0 && (
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 text-yellow-500" />
-                            <span className="font-medium">
-                              {habit.points_value} puntos
+                          <div className='flex items-center space-x-1'>
+                            <Star className='h-4 w-4 text-yellow-500' />
+                            <span className='font-medium'>
+                              Base: {habit.points_value} pts
                             </span>
                           </div>
                         )}
                       </div>
+                      {habit.selected && (
+                        <div className='flex items-center space-x-2 mt-2 p-2 bg-white rounded border border-gray-200'>
+                          <Label
+                            htmlFor={`points-${habit.id}`}
+                            className='text-sm font-medium text-gray-700'
+                          >
+                            Puntos en esta rutina:
+                          </Label>
+                          <Input
+                            id={`points-${habit.id}`}
+                            type='number'
+                            min='0'
+                            max='100'
+                            value={habit.pointsInRoutine}
+                            onChange={(e) =>
+                              handlePointsChange(
+                                habit.id,
+                                Number(e.target.value)
+                              )
+                            }
+                            className='w-20 h-8 text-sm'
+                          />
+                          <Star className='h-4 w-4 text-yellow-500' />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -319,13 +354,13 @@ export function AddHabitModal({
             )}
           </ScrollArea>
         </div>
-        
+
         <Separator />
-        
+
         {/* Pie del modal */}
-        <div className="flex justify-between pt-4">
+        <div className='flex justify-between pt-4'>
           <Button
-            variant="outline"
+            variant='outline'
             onClick={() => {
               setOpen(false);
               onClose();
@@ -335,17 +370,20 @@ export function AddHabitModal({
           </Button>
           <Button
             onClick={handleAssignHabits}
-            disabled={isSaving || selectedHabits.size === 0}
+            disabled={isSaving || !habitsWithSelection.some((h) => h.selected)}
           >
             {isSaving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className='h-4 w-4 mr-2 animate-spin' />
                 Asignando...
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4 mr-2" />
-                Asignar Hábito{selectedHabits.size !== 1 ? 's' : ''}
+                <Plus className='h-4 w-4 mr-2' />
+                Asignar Hábito
+                {habitsWithSelection.filter((h) => h.selected).length !== 1
+                  ? 's'
+                  : ''}
               </>
             )}
           </Button>

@@ -27,10 +27,9 @@ import { useAppStore } from '@/store/app-store';
 import { useToast } from '@/hooks/use-toast';
 import { createRoutineSchema } from '@/lib/validations/routine';
 import { RoutineHabitsList } from '@/components/routine-habits-list';
-import { AddHabitModal } from '@/components/add-habit-modal';
 import { getAssignedHabits, getAvailableHabits } from '@/lib/routine-habits-service';
 import { RoutineHabitAssignment, HabitWithSelection } from '@/types/routine-habits';
-import { ArrowLeft, Clock, Save, Award } from 'lucide-react';
+import { ArrowLeft, Clock, Save, Award, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
@@ -64,7 +63,6 @@ export default function EditRoutinePage() {
   const [assignedHabits, setAssignedHabits] = useState<RoutineHabitAssignment[]>([]);
   const [availableHabits, setAvailableHabits] = useState<HabitWithSelection[]>([]);
   const [isHabitsLoading, setIsHabitsLoading] = useState(false);
-  const [showAddHabitModal, setShowAddHabitModal] = useState(false);
   
   const router = useRouter();
   const params = useParams();
@@ -543,30 +541,17 @@ export default function EditRoutinePage() {
             <div className='space-y-4'>
               <RoutineHabitsList
                 routineId={params.id as string}
+                childId={selectedChild?.id || ''}
                 assignedHabits={assignedHabits}
+                availableHabits={availableHabits.filter(h =>
+                  !assignedHabits.some(ah => ah.habit_id === h.id)
+                )}
                 onRefresh={() => {
                   if (params.id) {
                     loadAssignedHabits(params.id as string);
                   }
                 }}
-                onAddHabit={() => setShowAddHabitModal(true)}
                 isLoading={isHabitsLoading}
-              />
-              
-              <AddHabitModal
-                routineId={params.id as string}
-                childId={selectedChild?.id || ''}
-                availableHabits={availableHabits.filter(h =>
-                  !assignedHabits.some(ah => ah.habit_id === h.id)
-                )}
-                onClose={() => setShowAddHabitModal(false)}
-                onSuccess={() => {
-                  setShowAddHabitModal(false);
-                  if (params.id) {
-                    loadAssignedHabits(params.id as string);
-                  }
-                }}
-                trigger={undefined}
               />
             </div>
 

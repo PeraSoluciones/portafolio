@@ -103,7 +103,10 @@ export default function NewRewardPage() {
       return;
     }
 
-    const validationResult = rewardSchema.safeParse(formData);
+    const validationResult = rewardSchema.safeParse({
+      ...formData,
+      child_id: selectedChild.id,
+    });
 
     if (!validationResult.success) {
       const errors: Partial<Record<keyof RewardFormValues, string>> = {};
@@ -111,6 +114,7 @@ export default function NewRewardPage() {
       validationResult.error.issues.forEach((issue) => {
         errors[issue.path[0] as keyof RewardFormValues] = issue.message;
       });
+
       setFieldErrors(errors);
 
       toast({

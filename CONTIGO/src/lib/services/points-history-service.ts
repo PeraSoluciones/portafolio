@@ -144,7 +144,7 @@ export function formatTransactionForDisplay(transaction: PointsHistoryResponse['
       break;
     case 'ADJUSTMENT':
       icon = '⚙️';
-      typeLabel = 'Ajuste manual';
+      typeLabel = transaction.points > 0 ? 'Ajuste positivo' : transaction.points < 0 ? 'Ajuste negativo' : 'Ajuste neutral';
       break;
   }
   

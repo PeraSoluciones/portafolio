@@ -27,6 +27,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
 import { HabitRecordModal } from '@/components/habit-record-modal';
+import { formatedCurrentDate, formatedDate } from '@/lib/utils';
 
 export default function HabitsPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
@@ -57,9 +58,14 @@ export default function HabitsPage() {
   useEffect(() => {
     if (selectedChild) {
       fetchHabits();
-      fetchHabitRecords();
     }
   }, [selectedChild]);
+
+  useEffect(() => {
+    if (habits.length > 0) {
+      fetchHabitRecords();
+    }
+  }, [habits]);
 
   const fetchHabits = async () => {
     if (!selectedChild) return;
@@ -132,15 +138,30 @@ export default function HabitsPage() {
     setRecordModalOpen(true);
   };
 
-  const handleRecordSuccess = () => {
-    // Refresh habits records after successful recording
-    fetchHabitRecords();
+  const handleRecordSuccess = (newRecord: HabitRecord) => {
+    setHabitRecords((prevRecords) => {
+      const recordIndex = prevRecords.findIndex(
+        (r) => r.habit_id === newRecord.habit_id && r.date === newRecord.date
+      );
+
+      if (recordIndex > -1) {
+        // Actualizar el registro existente
+        const updatedRecords = [...prevRecords];
+        updatedRecords[recordIndex] = newRecord;
+        return updatedRecords;
+      } else {
+        // Añadir el nuevo registro
+        return [...prevRecords, newRecord];
+      }
+    });
   };
 
   const getHabitProgress = (habit: Habit) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatedCurrentDate();
     const todayRecord = habitRecords.find(
-      (record) => record.habit_id === habit.id && record.date === today
+      (record) =>
+        record.habit_id === habit.id &&
+        formatedDate(new Date(record.created_at)) === today
     );
 
     if (!todayRecord) return 0;
@@ -149,9 +170,12 @@ export default function HabitsPage() {
   };
 
   const getTodayValue = (habit: Habit) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = formatedCurrentDate();
+
     const todayRecord = habitRecords.find(
-      (record) => record.habit_id === habit.id && record.date === today
+      (record) =>
+        record.habit_id === habit.id &&
+        formatedDate(new Date(record.created_at)) === today
     );
 
     return todayRecord?.value || 0;

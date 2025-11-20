@@ -98,7 +98,7 @@ export default function TodayPage() {
     if (selectedChild) {
       fetchData();
     }
-  }, [selectedChild]);
+  }, [selectedChild?.id]);
 
   const fetchData = async () => {
     if (!selectedChild) return;
@@ -574,7 +574,10 @@ export default function TodayPage() {
                 </CardTitle>
               </div>
               <CardDescription className='text-sm text-muted-foreground'>
-                Puntos disponibles
+                {selectedChild && selectedChild.points_balance < 0
+                  ? 'Puntos en déficit'
+                  : 'Puntos disponibles'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent>

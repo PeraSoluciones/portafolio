@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // Esquema de validación para crear un reclamo de recompensa
 const createClaimSchema = z.object({
-  reward_id: z.string().uuid(),
+  reward_id: z.uuid(),
   notes: z.string().optional(),
 });
 

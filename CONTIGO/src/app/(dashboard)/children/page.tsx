@@ -140,6 +140,7 @@ export default function ChildrenPage() {
             <Card
               key={child.id}
               className='h-full transition-all duration-200 group-hover:shadow-lg group-hover:border-primary cursor-pointer'
+              data-testid="child-card"
             >
               <CardHeader>
                 <div className='flex items-center justify-between'>
@@ -164,11 +165,8 @@ export default function ChildrenPage() {
                     <Button
                       variant='outline'
                       size='sm'
-                      className='opacity-50 group-hover:opacity-100 transition-opacity'
                       aria-label={`Editar perfil de ${child.name}`}
-                      onClick={() => {
-                        router.push(`/children/${child.id}/edit`);
-                      }}
+                      onClick={() => router.push(`/children/${child.id}/edit`)}
                     >
                       <Edit className='h-4 w-4' />
                     </Button>
@@ -182,7 +180,7 @@ export default function ChildrenPage() {
                       <Button
                         variant='outline'
                         size='sm'
-                        className='text-red-600 hover:text-red-700 opacity-50 group-hover:opacity-100 transition-opacity'
+                        className='text-red-600 hover:text-red-700'
                         aria-label={`Eliminar perfil de ${child.name}`}
                       >
                         <Trash2 className='h-4 w-4' />
@@ -191,46 +189,42 @@ export default function ChildrenPage() {
                   </div>
                 </div>
               </CardHeader>
-              <Link href={`/dashboard/?child=${child.id}`}>
-                <CardContent>
-                  <div className='space-y-3'>
-                    <div>
-                      <p className='text-sm text-gray-500'>Tipo de TDAH</p>
-                      <div className='flex items-center gap-2 flex-wrap'>
-                        <Badge variant='secondary'>
-                          {getADHDTypeLabel(child.adhd_type)}
-                        </Badge>
-                        <PointsBadge
-                          points={child.points_balance || 0}
-                          size='sm'
-                          variant='outline'
-                        />
-                        <PointsHistory
-                          childId={child.id}
-                          childName={child.name}
-                          currentBalance={child.points_balance || 0}
-                        />
-                      </div>
+              <CardContent>
+                <div className='space-y-3'>
+                  <div>
+                    <p className='text-sm text-gray-500'>Tipo de TDAH</p>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <Badge variant='secondary'>
+                        {getADHDTypeLabel(child.adhd_type)}
+                      </Badge>
+                      <PointsBadge
+                        points={child.points_balance || 0}
+                        size='sm'
+                        variant='outline'
+                      />
+                      <PointsHistory
+                        childId={child.id}
+                        childName={child.name}
+                      />
                     </div>
+                  </div>
+                  <Link href={`/dashboard/?child=${child.id}`}>
                     <div>
                       <p className='text-sm text-gray-500'>
                         Fecha de nacimiento
                       </p>
                       <p className='font-medium'>
-                        {new Date(child.birth_date).toLocaleDateString(
-                          'es-ES',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            timeZone: 'UTC',
-                          }
-                        )}
+                        {new Date(child.birth_date).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          timeZone: 'UTC',
+                        })}
                       </p>
                     </div>
-                  </div>
-                </CardContent>
-              </Link>
+                  </Link>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>

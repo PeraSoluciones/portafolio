@@ -276,7 +276,7 @@ export default function BehaviorsPage() {
 
       {/* Registros recientes */}
       {behaviorRecords.length > 0 && (
-        <Card className='mb-8'>
+        <Card className='mb-8' data-testid="recent-records">
           <CardHeader>
             <CardTitle className='flex items-center space-x-2'>
               <Calendar className='h-5 w-5 text-blue-600' />
@@ -364,6 +364,7 @@ export default function BehaviorsPage() {
                               ? 'text-green-600'
                               : 'text-red-600'
                           }`}
+                          data-testid="behavior-points"
                         >
                           <div className='font-semibold'>
                             {behavior.type === 'POSITIVE' ? '+' : '-'}
@@ -460,6 +461,7 @@ export default function BehaviorsPage() {
               <Card
                 key={behavior.id}
                 className='hover:shadow-lg transition-shadow'
+                data-testid="behavior-card"
               >
                 <CardHeader>
                   <div className='flex items-center justify-between'>
@@ -514,7 +516,7 @@ export default function BehaviorsPage() {
                         ) : (
                           <BadgeAlert className='h-4 w-4 text-red-600' />
                         )}
-                        <span className='font-medium'>
+                        <span className='font-medium' data-testid="behavior-points">
                           {behavior.type === 'POSITIVE' ? '+' : '-'}
                           {behavior.points_value} pts
                         </span>

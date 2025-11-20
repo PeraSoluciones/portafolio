@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +25,14 @@ import { CalendarIcon, Plus, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Habit } from '@/types/database';
+import { Habit, HabitRecord } from '@/types/index';
+import { formatedDate } from '@/lib/utils';
 
 interface HabitRecordModalProps {
   habit: Habit | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (record: HabitRecord) => void;
 }
 
 export function HabitRecordModal({
@@ -47,13 +48,13 @@ export function HabitRecordModal({
   const [notes, setNotes] = useState('');
 
   // Reset form when habit changes
-  useState(() => {
+  useEffect(() => {
     if (habit) {
       setValue(1);
       setNotes('');
       setDate(new Date());
     }
-  });
+  }, [habit]);
 
   if (!habit) return null;
 
@@ -64,16 +65,34 @@ export function HabitRecordModal({
     try {
       const supabase = createBrowserClient();
       
-      const { error } = await supabase
+      const formattedDate = formatedDate(date);
+
+      // 1. Check for an existing record for this habit on this day
+      const { data: existingRecord } = await supabase
         .from('habit_records')
-        .upsert({
-          habit_id: habit.id,
-          date: date.toISOString().split('T')[0],
-          value,
-          notes,
-        }, {
+        .select('value')
+        .eq('habit_id', habit.id)
+        .eq('date', formattedDate)
+        .single();
+
+      // 2. Calculate the new value
+      const newValue = (existingRecord?.value || 0) + value;
+
+      const recordData = {
+        habit_id: habit.id,
+        date: formattedDate,
+        value: newValue,
+        notes,
+      };
+
+      // 3. Upsert the record with the new accumulated value
+      const { data, error } = await supabase
+        .from('habit_records')
+        .upsert(recordData, {
           onConflict: 'habit_id,date',
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         toast({
@@ -81,7 +100,7 @@ export function HabitRecordModal({
           description: error.message,
           variant: 'destructive',
         });
-      } else {
+      } else if (data) {
         toast({
           title: '¡Hábito registrado!',
           description: `${habit.title} ha sido registrado correctamente.`,
@@ -90,7 +109,7 @@ export function HabitRecordModal({
         
         onOpenChange(false);
         if (onSuccess) {
-          onSuccess();
+          onSuccess(data as HabitRecord);
         }
       }
     } catch (error) {

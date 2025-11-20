@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { formatedCurrentDate } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       'SATURDAY',
     ];
     const todayName = dayNames[today];
-    const todayDate = new Date().toISOString().split('T')[0];
+    const todayDate = formatedCurrentDate();
 
     // Obtener rutinas de hoy con sus hábitos asignados
     const { data: routinesData, error: routinesError } = await supabase

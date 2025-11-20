@@ -118,7 +118,7 @@ export default function RegisterPage() {
   // Pantalla de éxito después del registro
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 p-4">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-2xl font-bold text-green-600">¡Registro exitoso!</CardTitle>

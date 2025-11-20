@@ -40,38 +40,59 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION on_habit_record_created()
 RETURNS TRIGGER AS $$
 DECLARE
-  total_points INTEGER := 0;
+  base_points INTEGER := 0;
   habit_child_id UUID;
   habit_title TEXT;
+  habit_points_value INTEGER;
+  routine_points_value INTEGER;
   result RECORD;
+  points_to_award INTEGER := 0;
 BEGIN
-  -- Obtener información del hábito
-  SELECT h.child_id, h.title INTO habit_child_id, habit_title
-  FROM habits h
-  WHERE h.id = NEW.habit_id;
-  
-  -- Sumar puntos de todas las rutinas que incluyen este hábito
-  SELECT COALESCE(SUM(rh.points_value), 0) INTO total_points
-  FROM routine_habits rh
-  JOIN routines r ON r.id = rh.routine_id
-  WHERE rh.habit_id = NEW.habit_id
-  AND r.is_active = true
-  AND rh.points_value > 0;
-  
-  -- Si hay puntos asignados, crear la transacción
-  IF total_points > 0 THEN
-    SELECT * INTO result FROM handle_points_transaction(
-      habit_child_id,
-      'HABIT',
-      NEW.habit_id,
-      total_points,
-      'Puntos por hábito completado: ' || habit_title,
-      FALSE -- No permitir saldo negativo
-    );
+  -- Solo procesar si es un INSERT o si el valor ha aumentado en un UPDATE
+  IF TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND NEW.value > OLD.value) THEN
     
-    -- Verificar que la transacción fue exitosa
-    IF NOT result.success THEN
-      RAISE EXCEPTION 'Error al procesar puntos de hábito: %', result.message;
+    -- Obtener información del hábito, incluyendo su valor de puntos directo
+    SELECT h.child_id, h.title, h.points_value INTO habit_child_id, habit_title, habit_points_value
+    FROM habits h
+    WHERE h.id = NEW.habit_id;
+    
+    -- Sumar puntos de todas las rutinas activas que incluyen este hábito
+    SELECT COALESCE(SUM(rh.points_value), 0) INTO routine_points_value
+    FROM routine_habits rh
+    JOIN routines r ON r.id = rh.routine_id
+    WHERE rh.habit_id = NEW.habit_id
+    AND r.is_active = true
+    AND rh.points_value > 0;
+    
+    -- Priorizar puntos de rutina, si no, usar los del hábito
+    IF routine_points_value > 0 THEN
+      base_points := routine_points_value;
+    ELSE
+      base_points := habit_points_value;
+    END IF;
+
+    -- Calcular los puntos a otorgar basados en el cambio de valor
+    IF TG_OP = 'UPDATE' THEN
+      points_to_award := base_points * (NEW.value - OLD.value);
+    ELSE -- Si es un INSERT
+      points_to_award := base_points * NEW.value;
+    END IF;
+    
+    -- Si hay puntos a otorgar, crear la transacción
+    IF points_to_award > 0 THEN
+      SELECT * INTO result FROM handle_points_transaction(
+        habit_child_id,
+        'HABIT',
+        NEW.habit_id,
+        points_to_award,
+        'Puntos por hábito: ' || habit_title,
+        FALSE -- No permitir saldo negativo
+      );
+      
+      -- Verificar que la transacción fue exitosa
+      IF NOT result.success THEN
+        RAISE EXCEPTION 'Error al procesar puntos de hábito: %', result.message;
+      END IF;
     END IF;
   END IF;
   
@@ -169,7 +190,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Eliminar triggers existentes si los hay
 DROP TRIGGER IF EXISTS award_behavior_points_trigger ON behavior_records;
-DROP TRIGGER IF EXISTS award_habit_points_trigger ON habit_records;
+DROP TRIGGER IF EXISTS on_habit_record_created_trigger ON habit_records;
 DROP TRIGGER IF EXISTS deduct_reward_points_trigger ON reward_claims;
 
 -- Crear los triggers automáticos
@@ -178,7 +199,7 @@ CREATE TRIGGER on_behavior_record_created_trigger
   FOR EACH ROW EXECUTE FUNCTION on_behavior_record_created();
 
 CREATE TRIGGER on_habit_record_created_trigger
-  AFTER INSERT ON habit_records
+  AFTER INSERT OR UPDATE ON habit_records
   FOR EACH ROW EXECUTE FUNCTION on_habit_record_created();
 
 CREATE TRIGGER on_reward_claimed_trigger

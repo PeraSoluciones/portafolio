@@ -36,7 +36,7 @@ export default function BehaviorRecordModal({
 }: BehaviorRecordModalProps) {
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(
-    formatedCurrentDate('en-CA', 'America/Guayaquil')
+    formatedCurrentDate()
   );
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();

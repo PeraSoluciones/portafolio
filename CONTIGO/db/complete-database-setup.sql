@@ -58,10 +58,10 @@ CREATE TABLE IF NOT EXISTS habits (
   child_id UUID NOT NULL REFERENCES children(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
-  category TEXT NOT NULL CHECK (category IN ('SLEEP', 'NUTRITION', 'EXERCISE', 'HYGIENE', 'SOCIAL')),
+  category TEXT NOT NULL CHECK (category IN ('SLEEP', 'NUTRITION', 'EXERCISE', 'HYGIENE', 'SOCIAL', 'ORGANIZATION')),
   target_frequency INTEGER NOT NULL CHECK (target_frequency > 0),
   unit TEXT NOT NULL,
-  points_value INTEGER DEFAULT 0 CHECK (points_value >= 0),
+  points_value INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -476,11 +476,18 @@ DECLARE
   child_id UUID;
   behavior_title TEXT;
   result RECORD;
+  behavior_type TEXT;
 BEGIN
-  -- Obtener los detalles del comportamiento
-  SELECT b.points_value, b.child_id, b.title INTO behavior_points, child_id, behavior_title
+  -- Obtener los detalles del comportamiento, incluyendo el tipo
+  SELECT b.points_value, b.child_id, b.title, b.type
+  INTO behavior_points, child_id, behavior_title, behavior_type
   FROM behaviors b
   WHERE b.id = NEW.behavior_id;
+
+  -- Si el comportamiento es negativo, convertir los puntos a un valor negativo
+  IF behavior_type = 'NEGATIVE' THEN
+    behavior_points := -ABS(behavior_points);
+  END IF;
   
   -- Usar la función principal para crear la transacción de puntos
   SELECT * INTO result FROM handle_points_transaction(
@@ -506,47 +513,59 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION on_habit_record_created()
 RETURNS TRIGGER AS $$
 DECLARE
-  total_points INTEGER := 0;
+  base_points INTEGER := 0;
   habit_child_id UUID;
   habit_title TEXT;
-  habit_points INTEGER;
+  habit_points_value INTEGER;
+  routine_points_value INTEGER;
   result RECORD;
+  points_to_award INTEGER := 0;
 BEGIN
-  -- Obtener información del hábito
-  SELECT h.child_id, h.title, h.points_value INTO habit_child_id, habit_title, habit_points
-  FROM habits h
-  WHERE h.id = NEW.habit_id;
-  
-  -- Sumar puntos de todas las rutinas que incluyen este hábito
-  SELECT COALESCE(SUM(rh.points_value), 0) INTO total_points
-  FROM routine_habits rh
-  JOIN routines r ON r.id = rh.routine_id
-  WHERE rh.habit_id = NEW.habit_id
-  AND r.is_active = true
-  AND rh.points_value > 0;
-  
-  -- Si hay puntos asignados en rutinas, usar esos
-  -- Si no, usar los puntos directos del hábito
-  IF total_points > 0 THEN
-    -- Usar puntos de rutinas
-  ELSIF habit_points > 0 THEN
-    total_points := habit_points;
-  END IF;
-  
-  -- Si hay puntos asignados, crear la transacción
-  IF total_points > 0 THEN
-    SELECT * INTO result FROM handle_points_transaction(
-      habit_child_id,
-      'HABIT',
-      NEW.habit_id,
-      total_points,
-      'Puntos por hábito completado: ' || habit_title,
-      FALSE -- No permitir saldo negativo
-    );
+  -- Solo procesar si es un INSERT o si el valor ha aumentado en un UPDATE
+  IF TG_OP = 'INSERT' OR (TG_OP = 'UPDATE' AND NEW.value > OLD.value) THEN
     
-    -- Verificar que la transacción fue exitosa
-    IF NOT result.success THEN
-      RAISE EXCEPTION 'Error al procesar puntos de hábito: %', result.message;
+    -- Obtener información del hábito, incluyendo su valor de puntos directo
+    SELECT h.child_id, h.title, h.points_value INTO habit_child_id, habit_title, habit_points_value
+    FROM habits h
+    WHERE h.id = NEW.habit_id;
+    
+    -- Sumar puntos de todas las rutinas activas que incluyen este hábito
+    SELECT COALESCE(SUM(rh.points_value), 0) INTO routine_points_value
+    FROM routine_habits rh
+    JOIN routines r ON r.id = rh.routine_id
+    WHERE rh.habit_id = NEW.habit_id
+    AND r.is_active = true
+    AND rh.points_value > 0;
+    
+    -- Priorizar puntos de rutina, si no, usar los del hábito
+    IF routine_points_value > 0 THEN
+      base_points := routine_points_value;
+    ELSE
+      base_points := habit_points_value;
+    END IF;
+
+    -- Calcular los puntos a otorgar basados en el cambio de valor
+    IF TG_OP = 'UPDATE' THEN
+      points_to_award := base_points * (NEW.value - OLD.value);
+    ELSE -- Si es un INSERT
+      points_to_award := base_points * NEW.value;
+    END IF;
+    
+    -- Si hay puntos a otorgar, crear la transacción
+    IF points_to_award > 0 THEN
+      SELECT * INTO result FROM handle_points_transaction(
+        habit_child_id,
+        'HABIT',
+        NEW.habit_id,
+        points_to_award,
+        'Puntos por hábito: ' || habit_title,
+        FALSE -- No permitir saldo negativo
+      );
+      
+      -- Verificar que la transacción fue exitosa
+      IF NOT result.success THEN
+        RAISE EXCEPTION 'Error al procesar puntos de hábito: %', result.message;
+      END IF;
     END IF;
   END IF;
   
@@ -600,7 +619,7 @@ CREATE TRIGGER on_behavior_record_created_trigger
 
 DROP TRIGGER IF EXISTS on_habit_record_created_trigger ON habit_records;
 CREATE TRIGGER on_habit_record_created_trigger
-  AFTER INSERT ON habit_records
+  AFTER INSERT OR UPDATE ON habit_records
   FOR EACH ROW EXECUTE FUNCTION on_habit_record_created();
 
 DROP TRIGGER IF EXISTS on_reward_claimed_trigger ON reward_claims;

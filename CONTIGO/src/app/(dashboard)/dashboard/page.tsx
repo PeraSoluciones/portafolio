@@ -87,9 +87,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (selectedChild) {
+      const { refreshChildPoints } = useAppStore.getState();
+      refreshChildPoints(selectedChild.id);
       fetchData();
     }
-  }, [selectedChild]);
+  }, [selectedChild?.id]);
 
   const fetchData = async () => {
     if (!selectedChild) return;
@@ -238,48 +240,42 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='flex items-center space-x-4'>
-              <Avatar className='h-12 w-12'>
-                <AvatarImage src={selectedChild?.avatar_url} />
-                <AvatarFallback className='text-sm font-medium'>
-                  {selectedChild?.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className='font-medium text-foreground'>
-                  {selectedChild?.name}
-                </p>
-                <p className='text-sm text-muted-foreground'>
-                  {calculateAge(selectedChild?.birth_date || '')} años
-                </p>
-                <div className='flex items-center gap-2 mt-2'>
-                  <Badge
-                    variant='outline'
-                    className={cn(
-                      getADHDTypeColor(selectedChild?.adhd_type || '')
-                    )}
-                  >
-                    {getADHDTypeLabel(selectedChild?.adhd_type || '')}
-                  </Badge>
-                  <div className="flex items-center gap-2">
-                    <PointsBadge
-                      points={selectedChild?.points_balance || 0}
-                      size='sm'
-                      variant='secondary'
-                    />
-                    {selectedChild && (
-                      <PointsHistory
-                        childId={selectedChild.id}
-                        childName={selectedChild.name}
-                        currentBalance={selectedChild.points_balance || 0}
-                      />
-                    )}
-                  </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={selectedChild?.avatar_url} />
+                  <AvatarFallback className="text-sm font-medium">
+                    {selectedChild?.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-foreground">{selectedChild?.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {calculateAge(selectedChild?.birth_date || '')} años
+                  </p>
                 </div>
               </div>
-              <div className='ml-auto'>
-                <Link href='/children'>
-                  <Button variant='outline' size='sm'>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Badge
+                  variant="outline"
+                  className={cn(getADHDTypeColor(selectedChild?.adhd_type || ''))}
+                >
+                  {getADHDTypeLabel(selectedChild?.adhd_type || '')}
+                </Badge>
+                <PointsBadge
+                  points={selectedChild?.points_balance || 0}
+                  size="sm"
+                  variant="secondary"
+                  data-testid="child-points-balance"
+                />
+                {selectedChild && (
+                  <PointsHistory
+                    childId={selectedChild.id}
+                    childName={selectedChild.name}
+                  />
+                )}
+                <Link href="/children">
+                  <Button variant="outline" size="sm">
                     Gestionar hijos
                   </Button>
                 </Link>
@@ -331,7 +327,7 @@ export default function DashboardPage() {
                 Progreso diario de actividades
               </CardDescription>
             </CardHeader>
-            <CardContent className='flex-grow flex flex-col'>
+            <CardContent className='grow flex flex-col'>
               <div className='mb-4'>
                 <div className='flex items-baseline'>
                   <span className='text-3xl font-bold text-primary'>
@@ -358,28 +354,28 @@ export default function DashboardPage() {
                   }}
                 ></div>
               </div>
-              <div className='mt-auto flex items-center justify-between'>
-                <Link href='/routines' className='flex-1 mr-2'>
-                  <Button variant='outline' size='sm' className='w-full'>
+              <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
+                <Link href="/routines" className="grow">
+                  <Button variant="outline" size="sm" className="w-full">
                     Ver todas
                   </Button>
                 </Link>
-                <div className='flex items-center gap-2'>
-                  <Link href='/today'>
+                <div className="flex items-center gap-2 grow sm:grow-0">
+                  <Link href="/today" className="grow">
                     <Button
-                      size='sm'
-                      className='bg-chart-4 hover:bg-chart-4/90 text-chart-4-foreground transition-colors duration-200'
+                      size="sm"
+                      className="w-full bg-teal-500 hover:bg-teal-600 text-white"
                     >
-                      <CheckCircle className='h-4 w-4 mr-2' />
+                      <CheckCircle className="h-4 w-4 mr-2" />
                       Hoy
                     </Button>
                   </Link>
-                  <Link href='/routines/new'>
+                  <Link href="/routines/new" className="grow">
                     <Button
-                      size='sm'
-                      className='bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200'
+                      size="sm"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                      <Plus className='h-4 w-4 mr-2' />
+                      <Plus className="h-4 w-4 mr-2" />
                       Nueva
                     </Button>
                   </Link>
@@ -403,7 +399,7 @@ export default function DashboardPage() {
                 Seguimiento de hábitos semanales
               </CardDescription>
             </CardHeader>
-            <CardContent className='flex-grow flex flex-col'>
+            <CardContent className='grow flex flex-col'>
               <div className='mb-4'>
                 <div className='flex items-baseline'>
                   <span className='text-3xl font-bold text-chart-5'>
@@ -458,7 +454,7 @@ export default function DashboardPage() {
                 Motivación y logros
               </CardDescription>
             </CardHeader>
-            <CardContent className='flex-grow flex flex-col'>
+            <CardContent className='grow flex flex-col'>
               <div className='mb-4'>
                 <div className='flex items-baseline'>
                   <span className='text-3xl font-bold text-secondary'>
@@ -474,19 +470,19 @@ export default function DashboardPage() {
               </div>
 
               {/* Vista previa de recompensas */}
-              <div className='space-y-2 mb-4 flex-grow'>
+              <div className='space-y-2 mb-4 grow'>
                 {rewards.slice(0, 2).map((reward, index) => (
                   <div
                     key={reward.id}
                     className='flex items-center justify-between p-2 bg-secondary/10 rounded-lg border border-secondary/20'
                   >
-                    <div className='flex items-center space-x-2'>
-                      <Award className='h-4 w-4 text-secondary' />
-                      <span className='text-sm font-medium text-foreground truncate max-w-[120px]'>
+                    <div className='flex items-center space-x-2 min-w-0'>
+                      <Award className='h-4 w-4 text-secondary shrink-0' />
+                      <span className='text-sm font-medium text-foreground truncate'>
                         {reward.title}
                       </span>
                     </div>
-                    <div className='flex items-center space-x-1'>
+                    <div className='flex items-center space-x-1 shrink-0'>
                       <Zap className='h-3 w-3 text-secondary' />
                       <span className='text-xs font-medium text-secondary'>
                         {reward.points_required}
@@ -551,7 +547,7 @@ export default function DashboardPage() {
                 Registro de comportamientos
               </CardDescription>
             </CardHeader>
-            <CardContent className='flex-grow flex flex-col'>
+            <CardContent className='grow flex flex-col'>
               <div className='mb-4'>
                 <div className='flex items-baseline'>
                   <span className='text-3xl font-bold text-accent'>

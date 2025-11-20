@@ -19,7 +19,7 @@ export interface RoutineFormData {
 export interface HabitFormData {
   title: string;
   description?: string;
-  category: 'SLEEP' | 'NUTRITION' | 'EXERCISE' | 'HYGIENE' | 'SOCIAL';
+  category: 'SLEEP' | 'NUTRITION' | 'EXERCISE' | 'HYGIENE' | 'SOCIAL | ORGANIZATION';
   target_frequency: number;
   unit: string;
 }

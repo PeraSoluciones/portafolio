@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { z } from 'zod';
+import { PointsStats } from '@/types/database';
 
 // Esquema de validación para consulta
 const querySchema = z.object({
-  child_id: z.string().uuid(),
+  child_id: z.uuid(),
   limit: z.string().transform(Number).pipe(z.number().int().min(1).max(100)).optional(),
   offset: z.string().transform(Number).pipe(z.number().int().min(0)).optional(),
 });
@@ -38,15 +39,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Obtener el balance actual del niño
-    const { data: balanceData, error: balanceError } = await supabase
-      .from('children')
-      .select('points_balance')
-      .eq('id', child_id)
-      .single();
+    // Obtener estadísticas de puntos usando la nueva función RPC
+    const { data: statsData, error: statsError } = await supabase
+      .rpc('get_child_points_stats', { p_child_id: child_id })
+      .single<PointsStats>();
 
-    if (balanceError) {
-      return NextResponse.json({ error: balanceError.message }, { status: 500 });
+    if (statsError) {
+      return NextResponse.json({ error: statsError.message }, { status: 500 });
     }
 
     // Obtener el historial de transacciones
@@ -54,6 +53,7 @@ export async function GET(request: NextRequest) {
       .from('points_transactions')
       .select(`
         id,
+        child_id,
         transaction_type,
         related_id,
         points,
@@ -101,42 +101,20 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Calcular estadísticas
-    const stats = {
-      total_earned: 0,
-      total_spent: 0,
-      current_balance: balanceData?.points_balance || 0,
-      habits_completed: 0,
-      behaviors_recorded: 0,
-      rewards_claimed: 0,
-    };
-
-    if (transactionsData) {
-      stats.total_earned = transactionsData
-        .filter(t => t.points > 0)
-        .reduce((sum, t) => sum + t.points, 0);
-      
-      stats.total_spent = Math.abs(transactionsData
-        .filter(t => t.points < 0)
-        .reduce((sum, t) => sum + t.points, 0));
-      
-      stats.habits_completed = transactionsData
-        .filter(t => t.transaction_type === 'HABIT').length;
-      
-      stats.behaviors_recorded = transactionsData
-        .filter(t => t.transaction_type === 'BEHAVIOR').length;
-      
-      stats.rewards_claimed = transactionsData
-        .filter(t => t.transaction_type === 'REWARD_REDEMPTION').length;
-    }
-
     return NextResponse.json({
       child: {
         id: child.id,
         name: child.name,
       },
-      balance: balanceData?.points_balance || 0,
-      stats,
+      balance: statsData?.current_balance || 0,
+      stats: {
+        total_earned: statsData?.total_earned || 0,
+        total_spent: statsData?.total_spent || 0,
+        current_balance: statsData?.current_balance || 0,
+        habits_completed: statsData?.habits_completed || 0,
+        behaviors_recorded: statsData?.behaviors_recorded || 0,
+        rewards_claimed: statsData?.rewards_claimed || 0,
+      },
       transactions: enrichedTransactions || [],
       pagination: {
         limit,

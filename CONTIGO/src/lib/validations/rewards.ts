@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const rewardSchema = z.object({
-  child_id: z.string().uuid(),
+  child_id: z.uuid(),
   title: z
     .string()
     .min(3, { message: 'El título debe tener al menos 3 caracteres.' })

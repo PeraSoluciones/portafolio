@@ -13,13 +13,20 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Plus, Edit, Trash2, Trophy, Star, CheckCircle } from 'lucide-react';
+import {
+  Gift,
+  Plus,
+  Edit,
+  Trash2,
+  Trophy,
+  Star,
+  CheckCircle,
+} from 'lucide-react';
 import { useAppStore } from '@/store/app-store';
 import Link from 'next/link';
-import { Reward } from '@/types/database';
 import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import Confetti from 'react-confetti';
 
 export default function RewardsPage() {
   const router = useRouter();
@@ -28,7 +35,22 @@ export default function RewardsPage() {
   const [rewards, setRewards] = useState<any[]>([]);
   const [childPoints, setChildPoints] = useState(0);
   const [claimingReward, setClaimingReward] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -48,18 +70,28 @@ export default function RewardsPage() {
 
   useEffect(() => {
     if (selectedChild) {
-      fetchRewards();
-      fetchChildPoints();
+      fetchData();
     }
   }, [selectedChild]);
 
-  const fetchRewards = async () => {
+  const fetchData = async () => {
+    if (!selectedChild) return;
+    setLoading(true);
+    const points = await fetchChildPoints();
+    if (points !== null) {
+      await fetchRewards(points);
+    }
+    setLoading(false);
+  };
+
+  const fetchRewards = async (currentPoints: number) => {
     if (!selectedChild) return;
 
     const supabase = createBrowserClient();
     const { data, error } = await supabase
       .from('rewards')
-      .select(`
+      .select(
+        `
         id,
         title,
         description,
@@ -67,8 +99,9 @@ export default function RewardsPage() {
         is_active,
         created_at,
         updated_at,
-        reward_claims(id, claimed_at)
-      `)
+        reward_claims(id)
+      `
+      )
       .eq('child_id', selectedChild.id)
       .eq('is_active', true)
       .order('points_required', { ascending: true });
@@ -80,24 +113,23 @@ export default function RewardsPage() {
         variant: 'destructive',
       });
     } else {
-      // Procesar recompensas para determinar si ya fueron canjeadas
-      const processedRewards = data?.map(reward => {
-        const hasBeenClaimed = reward.reward_claims && reward.reward_claims.length > 0;
-        return {
-          ...reward,
-          has_been_claimed: hasBeenClaimed,
-          can_redeem: !hasBeenClaimed && childPoints >= reward.points_required,
-        };
-      }) || [];
-      
+      const processedRewards =
+        data?.map((reward) => {
+          const hasBeenClaimed =
+            reward.reward_claims && reward.reward_claims.length > 0;
+          return {
+            ...reward,
+            has_been_claimed: hasBeenClaimed,
+            can_redeem:
+              !hasBeenClaimed && currentPoints >= reward.points_required,
+          };
+        }) || [];
       setRewards(processedRewards);
     }
-
-    setLoading(false);
   };
 
-  const fetchChildPoints = async () => {
-    if (!selectedChild) return;
+  const fetchChildPoints = async (): Promise<number | null> => {
+    if (!selectedChild) return null;
 
     const supabase = createBrowserClient();
     const { data, error } = await supabase
@@ -108,14 +140,21 @@ export default function RewardsPage() {
 
     if (error) {
       console.error('Error al obtener puntos del niño:', error);
+      return null;
     } else {
-      setChildPoints(data?.points_balance || 0);
+      const points = data?.points_balance || 0;
+      setChildPoints(points);
+      return points;
     }
   };
 
-  const handleClaimReward = async (rewardId: string, rewardTitle: string, pointsRequired: number) => {
+  const handleClaimReward = async (
+    rewardId: string,
+    rewardTitle: string,
+    pointsRequired: number
+  ) => {
     if (!selectedChild) return;
-    
+
     if (childPoints < pointsRequired) {
       toast({
         title: 'Puntos insuficientes',
@@ -126,7 +165,7 @@ export default function RewardsPage() {
     }
 
     setClaimingReward(true);
-    
+
     try {
       const response = await fetch('/api/reward-claims', {
         method: 'POST',
@@ -144,7 +183,11 @@ export default function RewardsPage() {
       }
 
       const result = await response.json();
-      
+
+      // Disparar animación de celebración
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 5000); // Detener animación después de 5s
+
       toast({
         title: '¡Recompensa canjeada!',
         description: `Has canjeado "${rewardTitle}" correctamente. Tu nuevo saldo es ${result.new_balance} puntos.`,
@@ -153,12 +196,13 @@ export default function RewardsPage() {
 
       // Actualizar el saldo de puntos y la lista de recompensas
       setChildPoints(result.new_balance);
-      setRewards(prev => prev.map(reward =>
-        reward.id === rewardId
-          ? { ...reward, has_been_claimed: true, can_redeem: false }
-          : reward
-      ));
-
+      setRewards((prev) =>
+        prev.map((reward) =>
+          reward.id === rewardId
+            ? { ...reward, has_been_claimed: true, can_redeem: false }
+            : reward
+        )
+      );
     } catch (error) {
       console.error('Error al canjear recompensa:', error);
       toast({
@@ -203,6 +247,15 @@ export default function RewardsPage() {
 
   return (
     <>
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={200}
+          gravity={0.1}
+        />
+      )}
       <div className='mb-8'>
         <div className='flex justify-between items-center'>
           <div>
@@ -210,12 +263,13 @@ export default function RewardsPage() {
               Recompensas de {selectedChild?.name}
             </h2>
             <p className='text-gray-600 mt-2'>
-              Gestiona las recompensas disponibles para motivar y celebrar logros
+              Gestiona las recompensas disponibles para motivar y celebrar
+              logros
             </p>
             {selectedChild && (
-              <div className="mt-2 flex items-center space-x-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                <span className="text-lg font-semibold text-gray-700">
+              <div className='mt-2 flex items-center space-x-2'>
+                <Star className='h-5 w-5 text-yellow-500' />
+                <span className='text-lg font-semibold text-gray-700'>
                   Saldo actual: {childPoints} puntos
                 </span>
               </div>
@@ -294,7 +348,10 @@ export default function RewardsPage() {
                       {reward.has_been_claimed ? (
                         <>
                           <CheckCircle className='h-4 w-4 text-green-500' />
-                          <Badge variant='outline' className='text-green-600 border-green-600'>
+                          <Badge
+                            variant='outline'
+                            className='text-green-600 border-green-600'
+                          >
                             Canjeada
                           </Badge>
                         </>
@@ -314,7 +371,25 @@ export default function RewardsPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className='w-full'>Canjear recompensa</Button>
+                <Button
+                  className='w-full'
+                  onClick={() =>
+                    handleClaimReward(
+                      reward.id,
+                      reward.title,
+                      reward.points_required
+                    )
+                  }
+                  disabled={
+                    !reward.can_redeem ||
+                    claimingReward ||
+                    reward.has_been_claimed
+                  }
+                >
+                  {reward.has_been_claimed
+                    ? 'Ya Canjeada'
+                    : 'Canjear Recompensa'}
+                </Button>
               </CardFooter>
             </Card>
           ))}

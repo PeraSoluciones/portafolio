@@ -36,7 +36,7 @@ export default function NewBehaviorPage() {
     title: '',
     description: '',
     type: '',
-    points: '',
+    points_value: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExample, setSelectedExample] = useState<string | null>(null);
@@ -92,7 +92,7 @@ export default function NewBehaviorPage() {
       title: formData.title,
       description: formData.description,
       type: formData.type,
-      points: formData.points,
+      points_value: formData.points_value,
     });
 
     if (!validationResult.success) {
@@ -118,7 +118,7 @@ export default function NewBehaviorPage() {
             title: validationResult.data.title,
             description: validationResult.data.description,
             type: validationResult.data.type,
-            points: validationResult.data.points_value,
+            points_value: validationResult.data.points_value,
           },
         ])
         .select()
@@ -281,12 +281,14 @@ export default function NewBehaviorPage() {
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='points'>Puntos</Label>
+              <Label htmlFor='points_value'>Puntos</Label>
               <Input
-                id='points'
+                id='points_value'
                 type='number'
-                value={formData.points}
-                onChange={(e) => handleInputChange('points', e.target.value)}
+                value={formData.points_value}
+                onChange={(e) =>
+                  handleInputChange('points_value', e.target.value)
+                }
                 required
                 placeholder='10'
               />
