@@ -91,7 +91,8 @@ export default function ActionPlanGeneratorPage() {
       // Aquí podrías manejar el error, por ejemplo, con un toast
       const errorMessage: Message = {
         role: 'assistant',
-        content: 'Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.',
+        content:
+          'Lo siento, ha ocurrido un error. Por favor, inténtalo de nuevo.',
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -100,26 +101,28 @@ export default function ActionPlanGeneratorPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] container mx-auto py-4 px-4">
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold text-foreground">
+    <div className='flex flex-col h-[calc(100vh-8rem)] container mx-auto py-4 px-4'>
+      <div className='mb-4'>
+        <h1 className='text-3xl font-bold text-foreground'>
           Asesor de Planes de Acción
         </h1>
-        <p className="text-muted-foreground mt-2">
-          Chatea con un experto en TDAH para obtener planes de acción personalizados.
+        <p className='text-muted-foreground mt-2'>
+          Chatea con un experto en TDAH para obtener planes de acción
+          personalizados.
         </p>
       </div>
 
-      <Card className="flex-grow flex flex-col">
+      <Card className='grow flex flex-col'>
         <CardHeader>
           <CardTitle>Conversación</CardTitle>
         </CardHeader>
-        <CardContent className="flex-grow flex flex-col p-0">
-          <ScrollArea ref={scrollAreaRef} className="flex-grow p-4">
-            <div className="space-y-4">
+        <CardContent className='grow flex flex-col p-0'>
+          <ScrollArea ref={scrollAreaRef} className='grow p-4'>
+            <div className='space-y-4'>
               {messages.length === 0 ? (
-                <p className="text-center text-muted-foreground">
-                  ¡Hola! Soy tu asesor experto en TDAH. Describe el desafío que estás enfrentando y te ayudaré a crear un plan de acción.
+                <p className='text-center text-muted-foreground'>
+                  ¡Hola! Soy tu asesor experto en TDAH. Describe el desafío que
+                  estás enfrentando y te ayudaré a crear un plan de acción.
                 </p>
               ) : (
                 messages.map((message, index) => (
@@ -132,21 +135,25 @@ export default function ActionPlanGeneratorPage() {
                         : 'bg-muted text-muted-foreground'
                     )}
                   >
-                    <div className="flex-shrink-0">
+                    <div className='shrink-0'>
                       {message.role === 'user' ? (
-                        <User className="h-6 w-6 text-primary-foreground" />
+                        <User className='h-6 w-6 text-primary-foreground' />
                       ) : (
-                        <Bot className="h-6 w-6 text-muted-foreground" />
+                        <Bot className='h-6 w-6 text-muted-foreground' />
                       )}
                     </div>
-                    <div className={cn(
-                      'flex-grow prose prose-sm max-w-none',
-                      message.role === 'user'
-                        ? 'prose-invert'
-                        : 'dark:prose-invert'
-                    )}>
+                    <div
+                      className={cn(
+                        'grow prose prose-sm max-w-none',
+                        message.role === 'user'
+                          ? 'prose-invert'
+                          : 'dark:prose-invert'
+                      )}
+                    >
                       {message.role === 'user' ? (
-                        <p className="text-primary-foreground">{message.content}</p>
+                        <p className='text-primary-foreground'>
+                          {message.content}
+                        </p>
                       ) : (
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       )}
@@ -155,26 +162,29 @@ export default function ActionPlanGeneratorPage() {
                 ))
               )}
               {isLoading && (
-                <div className="flex gap-3 p-3 rounded-lg bg-muted">
-                  <Bot className="h-6 w-6 animate-pulse" />
-                  <p className="text-muted-foreground">Escribiendo...</p>
+                <div className='flex gap-3 p-3 rounded-lg bg-muted'>
+                  <Bot className='h-6 w-6 animate-pulse' />
+                  <p className='text-muted-foreground'>Escribiendo...</p>
                 </div>
               )}
             </div>
           </ScrollArea>
 
-          <div className="p-4 border-t">
+          <div className='p-4 border-t'>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-2">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className='flex gap-2'
+              >
                 <FormField
                   control={form.control}
-                  name="prompt"
+                  name='prompt'
                   render={({ field }) => (
-                    <FormItem className="flex-grow">
+                    <FormItem className='grow'>
                       <FormControl>
                         <Textarea
-                          placeholder="Escribe tu mensaje aquí..."
-                          className="resize-none"
+                          placeholder='Escribe tu mensaje aquí...'
+                          className='resize-none'
                           {...field}
                           rows={2}
                           disabled={isLoading}
@@ -190,8 +200,8 @@ export default function ActionPlanGeneratorPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isLoading} size="icon">
-                  <Send className="h-4 w-4" />
+                <Button type='submit' disabled={isLoading} size='icon'>
+                  <Send className='h-4 w-4' />
                 </Button>
               </form>
             </Form>

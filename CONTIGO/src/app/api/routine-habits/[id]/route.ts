@@ -14,8 +14,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -23,7 +26,8 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('routine_habits')
-      .select(`
+      .select(
+        `
         *,
         routines!inner(
           id,
@@ -39,7 +43,8 @@ export async function GET(
           unit,
           child_id
         )
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('routines.children.parent_id', user.id)
       .single();
@@ -92,8 +97,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -102,7 +110,8 @@ export async function PUT(
     // Verificar que la asignación existe y pertenece al usuario
     const { data: existingAssignment, error: assignmentError } = await supabase
       .from('routine_habits')
-      .select(`
+      .select(
+        `
         id,
         routine_id,
         habit_id,
@@ -117,7 +126,8 @@ export async function PUT(
           title,
           child_id
         )
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('routines.children.parent_id', user.id)
       .single();
@@ -140,11 +150,13 @@ export async function PUT(
         is_required: validatedData.is_required,
       })
       .eq('id', params.id)
-      .select(`
+      .select(
+        `
         *,
         routines(title, child_id),
         habits(title, category, target_frequency, unit, child_id)
-      `)
+      `
+      )
       .single();
 
     if (error) {
@@ -173,8 +185,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -183,7 +198,8 @@ export async function DELETE(
     // Verificar que la asignación existe y pertenece al usuario
     const { data: existingAssignment, error: assignmentError } = await supabase
       .from('routine_habits')
-      .select(`
+      .select(
+        `
         id,
         routine_id,
         habit_id,
@@ -193,7 +209,8 @@ export async function DELETE(
           child_id,
           children!inner(parent_id)
         )
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('routines.children.parent_id', user.id)
       .single();
@@ -215,9 +232,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(
-      { message: 'Asignación eliminada correctamente' }
-    );
+    return NextResponse.json({ message: 'Asignación eliminada correctamente' });
   } catch (error) {
     return NextResponse.json(
       { error: 'Error interno del servidor' },

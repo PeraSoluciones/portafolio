@@ -72,16 +72,30 @@ export default function DashboardPage() {
 
   const fetchChildrenDirectly = async () => {
     if (!user) return;
-    
+
     const { fetchChildrenWithPoints } = useAppStore.getState();
     await fetchChildrenWithPoints();
-    
+
     // Seleccionar el primer hijo si no hay uno seleccionado
-    const { children, setSelectedChild, selectedChild } = useAppStore.getState();
+    const { children, setSelectedChild, selectedChild } =
+      useAppStore.getState();
     if (children.length > 0 && !selectedChild) {
       setSelectedChild(children[0]);
+    } else if (children.length === 0) {
+      // Check for professional access if no children
+      const supabase = createBrowserClient();
+      const { count } = await supabase
+        .from('professional_patient_access')
+        .select('*', { count: 'exact', head: true })
+        .eq('professional_id', user.id)
+        .neq('status', 'revoked');
+
+      if (count && count > 0) {
+        router.push('/professional');
+        return;
+      }
     }
-    
+
     setLoading(false);
   };
 
@@ -149,12 +163,43 @@ export default function DashboardPage() {
 
       setTodayRoutines(todayRoutinesData);
 
-      // Simular rutinas completadas (en una implementación real, esto vendría de la base de datos)
-      setCompletedRoutines(
-        todayRoutinesData
-          .slice(0, Math.ceil(todayRoutinesData.length * 0.6))
-          .map((r) => r.id)
-      );
+      // Obtener completitud REAL de rutinas de hoy
+      const todayDate = new Date().toISOString().split('T')[0];
+      const routineIds = todayRoutinesData.map((r) => r.id);
+
+      if (routineIds.length > 0) {
+        const { data: completionsData, error: completionsError } =
+          await supabase
+            .from('routine_completions')
+            .select('routine_id, completion_percentage')
+            .eq('child_id', selectedChild.id)
+            .eq('completion_date', todayDate)
+            .in('routine_id', routineIds);
+
+        if (completionsError) {
+          console.error(
+            'Error fetching routine completions:',
+            completionsError
+          );
+          setCompletedRoutines([]);
+        } else {
+          // Marcar como completadas las rutinas que alcanzaron su umbral
+          const completedIds =
+            completionsData
+              ?.filter((c) => {
+                const routine = todayRoutinesData.find(
+                  (r) => r.id === c.routine_id
+                );
+                const threshold = routine?.completion_threshold || 100;
+                return c.completion_percentage >= threshold;
+              })
+              .map((c) => c.routine_id) || [];
+
+          setCompletedRoutines(completedIds);
+        }
+      } else {
+        setCompletedRoutines([]);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -240,33 +285,37 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-12 w-12">
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+              <div className='flex items-center space-x-4'>
+                <Avatar className='h-12 w-12'>
                   <AvatarImage src={selectedChild?.avatar_url} />
-                  <AvatarFallback className="text-sm font-medium">
+                  <AvatarFallback className='text-sm font-medium'>
                     {selectedChild?.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-foreground">{selectedChild?.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className='font-medium text-foreground'>
+                    {selectedChild?.name}
+                  </p>
+                  <p className='text-sm text-muted-foreground'>
                     {calculateAge(selectedChild?.birth_date || '')} años
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
+              <div className='flex flex-wrap items-center justify-end gap-2'>
                 <Badge
-                  variant="outline"
-                  className={cn(getADHDTypeColor(selectedChild?.adhd_type || ''))}
+                  variant='outline'
+                  className={cn(
+                    getADHDTypeColor(selectedChild?.adhd_type || '')
+                  )}
                 >
                   {getADHDTypeLabel(selectedChild?.adhd_type || '')}
                 </Badge>
                 <PointsBadge
                   points={selectedChild?.points_balance || 0}
-                  size="sm"
-                  variant="secondary"
-                  data-testid="child-points-balance"
+                  size='sm'
+                  variant='secondary'
+                  data-testid='child-points-balance'
                 />
                 {selectedChild && (
                   <PointsHistory
@@ -274,8 +323,8 @@ export default function DashboardPage() {
                     childName={selectedChild.name}
                   />
                 )}
-                <Link href="/children">
-                  <Button variant="outline" size="sm">
+                <Link href='/children'>
+                  <Button variant='outline' size='sm'>
                     Gestionar hijos
                   </Button>
                 </Link>
@@ -354,28 +403,28 @@ export default function DashboardPage() {
                   }}
                 ></div>
               </div>
-              <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
-                <Link href="/routines" className="grow">
-                  <Button variant="outline" size="sm" className="w-full">
+              <div className='mt-auto flex flex-wrap items-center justify-between gap-2'>
+                <Link href='/routines' className='grow'>
+                  <Button variant='outline' size='sm' className='w-full'>
                     Ver todas
                   </Button>
                 </Link>
-                <div className="flex items-center gap-2 grow sm:grow-0">
-                  <Link href="/today" className="grow">
+                <div className='flex items-center gap-2 grow sm:grow-0'>
+                  <Link href='/today' className='grow'>
                     <Button
-                      size="sm"
-                      className="w-full bg-teal-500 hover:bg-teal-600 text-white"
+                      size='sm'
+                      className='w-full bg-teal-500 hover:bg-teal-600 text-white'
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CheckCircle className='h-4 w-4 mr-2' />
                       Hoy
                     </Button>
                   </Link>
-                  <Link href="/routines/new" className="grow">
+                  <Link href='/routines/new' className='grow'>
                     <Button
-                      size="sm"
-                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                      size='sm'
+                      className='w-full bg-primary hover:bg-primary/90 text-primary-foreground'
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className='h-4 w-4 mr-2' />
                       Nueva
                     </Button>
                   </Link>

@@ -32,7 +32,7 @@ import {
 import Link from 'next/link';
 import { Routine, Habit, Child } from '@/types/database';
 import { RoutineHabitAssignment } from '@/types/routine-habits';
-import { getAssignedHabits } from '@/lib/routine-habits-service';
+import { getAssignedHabits } from '@/lib/services/routine-habits-service';
 import { cn, calculateAge } from '@/lib/utils';
 
 // Tipo para el estado de un hábito en la vista de hoy
@@ -46,12 +46,24 @@ interface HabitState {
 export default function TodayPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { user, children, selectedChild, setSelectedChild, fetchChildrenWithPoints } = useAppStore();
+  const {
+    user,
+    children,
+    selectedChild,
+    setSelectedChild,
+    fetchChildrenWithPoints,
+  } = useAppStore();
   const [loading, setLoading] = useState(true);
-  const [routines, setRoutines] = useState<(Routine & { habits: HabitState[] })[]>([]);
+  const [routines, setRoutines] = useState<
+    (Routine & { habits: HabitState[] })[]
+  >([]);
   const [habitsState, setHabitsState] = useState<HabitState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
-  const [pointsAnimation, setPointsAnimation] = useState<{ show: boolean; points: number; habitTitle: string }>({
+  const [pointsAnimation, setPointsAnimation] = useState<{
+    show: boolean;
+    points: number;
+    habitTitle: string;
+  }>({
     show: false,
     points: 0,
     habitTitle: '',
@@ -82,15 +94,16 @@ export default function TodayPage() {
 
   const fetchChildrenDirectly = async () => {
     if (!user) return;
-    
+
     await fetchChildrenWithPoints();
-    
+
     // Seleccionar el primer hijo si no hay uno seleccionado
-    const { children, setSelectedChild, selectedChild } = useAppStore.getState();
+    const { children, setSelectedChild, selectedChild } =
+      useAppStore.getState();
     if (children.length > 0 && !selectedChild) {
       setSelectedChild(children[0]);
     }
-    
+
     setLoading(false);
   };
 
@@ -119,7 +132,7 @@ export default function TodayPage() {
       }
 
       const { data } = await response.json();
-      
+
       // Transformar los datos al formato que espera el componente
       const formattedRoutines = data.routines.map((routine: any) => ({
         id: routine.id,
@@ -135,7 +148,7 @@ export default function TodayPage() {
           isCompleted: habit.isCompleted,
           recordId: habit.recordId,
           pointsEarned: habit.pointsValue,
-        }))
+        })),
       }));
 
       const allHabitsState = data.routines.flatMap((routine: any) =>
@@ -185,7 +198,7 @@ export default function TodayPage() {
     if (!selectedChild) return;
 
     setIsSubmitting(habitId);
-    
+
     try {
       // Usar el nuevo endpoint optimizado
       const response = await fetch('/api/today/toggle-habit', {
@@ -211,31 +224,41 @@ export default function TodayPage() {
       if (isChecked && data.action !== 'none') {
         // Marcar como completado
         const pointsEarned = data.pointsEarned || 0;
-        
-        setHabitsState(prev =>
-          prev.map(h =>
+
+        setHabitsState((prev) =>
+          prev.map((h) =>
             h.habitId === habitId
-              ? { ...h, isCompleted: true, recordId: data.record.id, pointsEarned }
+              ? {
+                  ...h,
+                  isCompleted: true,
+                  recordId: data.record.id,
+                  pointsEarned,
+                }
               : h
           )
         );
 
         // Actualizar las rutinas
-        setRoutines(prev =>
-          prev.map(routine => ({
+        setRoutines((prev) =>
+          prev.map((routine) => ({
             ...routine,
-            habits: routine.habits.map(h =>
+            habits: routine.habits.map((h) =>
               h.habitId === habitId
-                ? { ...h, isCompleted: true, recordId: data.record.id, pointsEarned }
+                ? {
+                    ...h,
+                    isCompleted: true,
+                    recordId: data.record.id,
+                    pointsEarned,
+                  }
                 : h
-            )
+            ),
           }))
         );
 
         // Mostrar animación de puntos si ganó puntos
         if (pointsEarned > 0) {
           const habitTitle = data.habit.title || getHabitTitle(habitId);
-          
+
           setPointsAnimation({
             show: true,
             points: pointsEarned,
@@ -258,33 +281,44 @@ export default function TodayPage() {
       } else if (!isChecked) {
         // Desmarcar como completado
         const pointsLost = data.pointsLost || 0;
-        
-        setHabitsState(prev =>
-          prev.map(h =>
+
+        setHabitsState((prev) =>
+          prev.map((h) =>
             h.habitId === habitId
-              ? { ...h, isCompleted: false, recordId: undefined, pointsEarned: 0 }
+              ? {
+                  ...h,
+                  isCompleted: false,
+                  recordId: undefined,
+                  pointsEarned: 0,
+                }
               : h
           )
         );
 
         // Actualizar las rutinas
-        setRoutines(prev =>
-          prev.map(routine => ({
+        setRoutines((prev) =>
+          prev.map((routine) => ({
             ...routine,
-            habits: routine.habits.map(h =>
+            habits: routine.habits.map((h) =>
               h.habitId === habitId
-                ? { ...h, isCompleted: false, recordId: undefined, pointsEarned: 0 }
+                ? {
+                    ...h,
+                    isCompleted: false,
+                    recordId: undefined,
+                    pointsEarned: 0,
+                  }
                 : h
-            )
+            ),
           }))
         );
 
         // Actualizar el saldo del niño en el store
         await fetchChildrenWithPoints();
 
-        const message = pointsLost > 0
-          ? `Se ha eliminado el registro (-${pointsLost} puntos)`
-          : 'Se ha eliminado el registro de hoy';
+        const message =
+          pointsLost > 0
+            ? `Se ha eliminado el registro (-${pointsLost} puntos)`
+            : 'Se ha eliminado el registro de hoy';
 
         toast({
           title: 'Hábito desmarcado',
@@ -335,11 +369,12 @@ export default function TodayPage() {
     }
   };
 
-  const completedHabitsCount = habitsState.filter(h => h.isCompleted).length;
+  const completedHabitsCount = habitsState.filter((h) => h.isCompleted).length;
   const totalHabitsCount = habitsState.length;
-  const progressPercentage = totalHabitsCount > 0 ? (completedHabitsCount / totalHabitsCount) * 100 : 0;
+  const progressPercentage =
+    totalHabitsCount > 0 ? (completedHabitsCount / totalHabitsCount) * 100 : 0;
   const totalPointsEarnedToday = habitsState
-    .filter(h => h.isCompleted)
+    .filter((h) => h.isCompleted)
     .reduce((total, h) => total + (h.pointsEarned || 0), 0);
 
   if (loading) {
@@ -367,14 +402,15 @@ export default function TodayPage() {
     <div className='space-y-6'>
       {/* Animación de puntos */}
       {pointsAnimation.show && (
-        <div className="fixed top-20 right-4 z-50 animate-pulse">
-          <Card className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg">
-            <CardContent className="p-4 flex items-center space-x-3">
-              <Sparkles className="h-6 w-6" />
+        <div className='fixed top-20 right-4 z-50 animate-pulse'>
+          <Card className='bg-linear-to-r from-yellow-400 to-orange-500 text-white border-0 shadow-lg'>
+            <CardContent className='p-4 flex items-center space-x-3'>
+              <Sparkles className='h-6 w-6' />
               <div>
-                <p className="font-bold">¡Felicidades!</p>
-                <p className="text-sm">
-                  {pointsAnimation.points} puntos por "{pointsAnimation.habitTitle}"
+                <p className='font-bold'>¡Felicidades!</p>
+                <p className='text-sm'>
+                  {pointsAnimation.points} puntos por "
+                  {pointsAnimation.habitTitle}"
                 </p>
               </div>
             </CardContent>
@@ -390,11 +426,11 @@ export default function TodayPage() {
             Rutinas de Hoy
           </h1>
           <p className='text-muted-foreground mt-1'>
-            {new Date().toLocaleDateString('es-ES', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {new Date().toLocaleDateString('es-ES', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
             })}
           </p>
         </div>
@@ -576,8 +612,7 @@ export default function TodayPage() {
               <CardDescription className='text-sm text-muted-foreground'>
                 {selectedChild && selectedChild.points_balance < 0
                   ? 'Puntos en déficit'
-                  : 'Puntos disponibles'
-                }
+                  : 'Puntos disponibles'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -585,8 +620,8 @@ export default function TodayPage() {
                 <div className='flex items-baseline'>
                   <PointsBadge
                     points={selectedChild?.points_balance || 0}
-                    size="lg"
-                    variant="default"
+                    size='lg'
+                    variant='default'
                   />
                 </div>
               </div>
@@ -619,8 +654,12 @@ export default function TodayPage() {
                       {routine.time} - {routine.description}
                     </CardDescription>
                   </div>
-                  <Badge variant='outline' className='text-chart-2 border-chart-2'>
-                    {routine.habits.filter(h => h.isCompleted).length}/{routine.habits.length} completados
+                  <Badge
+                    variant='outline'
+                    className='text-chart-2 border-chart-2'
+                  >
+                    {routine.habits.filter((h) => h.isCompleted).length}/
+                    {routine.habits.length} completados
                   </Badge>
                 </div>
               </CardHeader>
@@ -636,8 +675,8 @@ export default function TodayPage() {
                         key={habit.habitId}
                         className={cn(
                           'flex items-center justify-between p-3 rounded-lg border transition-all duration-200',
-                          habit.isCompleted 
-                            ? 'bg-green-50 border-green-200' 
+                          habit.isCompleted
+                            ? 'bg-green-50 border-green-200'
                             : 'bg-gray-50 hover:bg-gray-100'
                         )}
                       >
@@ -645,13 +684,17 @@ export default function TodayPage() {
                           <Checkbox
                             id={habit.habitId}
                             checked={habit.isCompleted}
-                            onCheckedChange={(checked) => 
-                              handleToggleHabit(habit.habitId, checked as boolean)
+                            onCheckedChange={(checked) =>
+                              handleToggleHabit(
+                                habit.habitId,
+                                checked as boolean
+                              )
                             }
                             disabled={isSubmitting === habit.habitId}
                             className={cn(
                               'h-5 w-5',
-                              habit.isCompleted && 'text-green-600 border-green-600'
+                              habit.isCompleted &&
+                                'text-green-600 border-green-600'
                             )}
                           />
                           <div className='flex-1'>
@@ -659,8 +702,8 @@ export default function TodayPage() {
                               htmlFor={habit.habitId}
                               className={cn(
                                 'font-medium cursor-pointer',
-                                habit.isCompleted 
-                                  ? 'text-green-700 line-through' 
+                                habit.isCompleted
+                                  ? 'text-green-700 line-through'
                                   : 'text-foreground'
                               )}
                             >

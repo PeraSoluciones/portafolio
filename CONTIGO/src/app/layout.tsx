@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { createServerClient } from '@/lib/supabase/server';
 
@@ -37,14 +37,16 @@ export const metadata: Metadata = {
   authors: [{ name: 'CONTIGO Team' }],
   openGraph: {
     title: 'CONTIGO - Aplicación para Padres de Niños con TDAH',
-    description: 'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
+    description:
+      'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
     siteName: 'CONTIGO',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CONTIGO - Aplicación para Padres de Niños con TDAH',
-    description: 'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
+    description:
+      'Aplicación web moderna para padres de niños con TDAH con gestión de rutinas, hábitos y comportamientos',
   },
 };
 
@@ -54,8 +56,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const supabase = await createServerClient();
-  
-  const { data: { session } } = await supabase.auth.getSession();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   return (
     <html lang='es' suppressHydrationWarning>

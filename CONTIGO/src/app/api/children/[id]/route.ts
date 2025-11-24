@@ -6,8 +6,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -38,8 +41,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -79,8 +85,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });

@@ -15,7 +15,7 @@ import { AlertModal } from '@/components/ui/alert-modal';
 import { AddHabitModal, HabitWithPoints } from '@/components/add-habit-modal';
 import { useToast } from '@/hooks/use-toast';
 import { RoutineHabitAssignment } from '@/types/routine-habits';
-import { removeHabitFromRoutine } from '@/lib/routine-habits-service';
+import { removeHabitFromRoutine } from '@/lib/services/routine-habits-service';
 import {
   CheckCircle,
   XCircle,

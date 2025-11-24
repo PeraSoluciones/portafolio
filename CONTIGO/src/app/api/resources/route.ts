@@ -3,8 +3,8 @@ import { createServerClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
-    
+    const supabase = await createServerClient();
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
 
@@ -36,8 +36,11 @@ export async function GET(request: NextRequest) {
 // Esta ruta sería para administradores, pero por ahora la dejamos protegida
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });

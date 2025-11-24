@@ -6,8 +6,11 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -15,10 +18,12 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('routines')
-      .select(`
+      .select(
+        `
         *,
         children!inner(parent_id)
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('children.parent_id', user.id)
       .single();
@@ -41,8 +46,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -54,10 +62,12 @@ export async function PUT(
     // Verificar que la rutina pertenece a un hijo del usuario
     const { data: routine, error: routineError } = await supabase
       .from('routines')
-      .select(`
+      .select(
+        `
         *,
         children!inner(parent_id)
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('children.parent_id', user.id)
       .single();
@@ -97,8 +107,11 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -107,10 +120,12 @@ export async function DELETE(
     // Verificar que la rutina pertenece a un hijo del usuario
     const { data: routine, error: routineError } = await supabase
       .from('routines')
-      .select(`
+      .select(
+        `
         *,
         children!inner(parent_id)
-      `)
+      `
+      )
       .eq('id', params.id)
       .eq('children.parent_id', user.id)
       .single();

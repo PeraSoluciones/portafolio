@@ -16,6 +16,7 @@ import {
   Plus,
   Edit,
   Users,
+  Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,7 @@ const navigation = [
   { name: 'Comportamientos', href: '/behaviors', icon: Star },
   { name: 'Recompensas', href: '/rewards', icon: Trophy },
   { name: 'Recursos', href: '/resources', icon: BookOpen },
+  { name: 'Equipo', href: '/team', icon: Users },
 ];
 
 export function Sidebar() {
@@ -49,6 +51,25 @@ export function Sidebar() {
   const { user, children, selectedChild, setSelectedChild, clearStore } =
     useAppStore();
   const router = useRouter();
+  const [isProfessional, setIsProfessional] = useState(false);
+
+  useEffect(() => {
+    const checkProfessionalStatus = async () => {
+      if (!user) return;
+      const supabase = createBrowserClient();
+      const { count } = await supabase
+        .from('professional_patient_access')
+        .select('*', { count: 'exact', head: true })
+        .eq('professional_id', user.id)
+        .neq('status', 'revoked');
+
+      if (count && count > 0) {
+        setIsProfessional(true);
+      }
+    };
+
+    checkProfessionalStatus();
+  }, [user]);
 
   const getADHDTypeLabel = (type: string) => {
     switch (type) {
@@ -97,6 +118,22 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {isProfessional && (
+          <Link
+            href='/professional'
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              pathname.startsWith('/professional')
+                ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            )}
+            onClick={() => setOpen(false)}
+          >
+            <Activity className='h-5 w-5' />
+            <span>Modo Profesional</span>
+          </Link>
+        )}
       </nav>
 
       {/* Selector de hijos */}

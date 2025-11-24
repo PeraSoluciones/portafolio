@@ -19,8 +19,11 @@ const querySchema = z.object({
 // GET - Obtener las asignaciones de hábitos a rutinas
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -32,9 +35,7 @@ export async function GET(request: NextRequest) {
       habit_id: searchParams.get('habit_id') || undefined,
     });
 
-    let query = supabase
-      .from('routine_habits')
-      .select(`
+    let query = supabase.from('routine_habits').select(`
         *,
         routines!inner(
           id,
@@ -65,14 +66,16 @@ export async function GET(request: NextRequest) {
     // Filtrar por usuario autenticado
     query = query.eq('routines.children.parent_id', user.id);
 
-    const { data, error } = await query.order('created_at', { ascending: true });
+    const { data, error } = await query.order('created_at', {
+      ascending: true,
+    });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     // Formatear los datos para una mejor estructura en el frontend
-    const formattedData = data?.map(item => ({
+    const formattedData = data?.map((item) => ({
       id: item.id,
       routine_id: item.routine_id,
       habit_id: item.habit_id,
@@ -113,8 +116,11 @@ export async function GET(request: NextRequest) {
 // POST - Asignar un hábito a una rutina
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -126,18 +132,23 @@ export async function POST(request: NextRequest) {
     // Verificar que la rutina pertenece a un hijo del usuario
     const { data: routine, error: routineError } = await supabase
       .from('routines')
-      .select(`
+      .select(
+        `
         id,
         title,
         child_id,
         children!inner(parent_id)
-      `)
+      `
+      )
       .eq('id', validatedData.routine_id)
       .eq('children.parent_id', user.id)
       .single();
 
     if (routineError || !routine) {
-      return NextResponse.json({ error: 'No autorizado para esta rutina' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'No autorizado para esta rutina' },
+        { status: 403 }
+      );
     }
 
     // Verificar que el hábito pertenece al mismo hijo
@@ -181,11 +192,13 @@ export async function POST(request: NextRequest) {
           is_required: validatedData.is_required,
         },
       ])
-      .select(`
+      .select(
+        `
         *,
         routines(title, child_id),
         habits(title, category, target_frequency, unit, child_id)
-      `)
+      `
+      )
       .single();
 
     if (error) {

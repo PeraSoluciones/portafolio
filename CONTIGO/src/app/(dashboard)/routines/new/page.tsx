@@ -32,7 +32,7 @@ import {
   getAssignedHabits,
   getAvailableHabits,
   assignHabitToRoutine,
-} from '@/lib/routine-habits-service';
+} from '@/lib/services/routine-habits-service';
 import {
   RoutineHabitAssignment,
   HabitWithSelection,

@@ -16,26 +16,29 @@ export default function VerifySessionPage() {
     const verifySession = async () => {
       try {
         const supabase = createBrowserClient();
-        
+
         // Obtener la sesión actual
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError) {
           // Manejar específicamente el error AuthSessionMissingError
           if (sessionError.message?.includes('Auth session missing')) {
             router.push('/login');
             return;
           }
-          
+
           setError('Error al verificar la sesión');
           return;
         }
-        
+
         if (!session?.user) {
           router.push('/login');
           return;
         }
-        
+
         // Establecer los datos del usuario
         const userData = {
           id: session.user.id,
@@ -45,46 +48,47 @@ export default function VerifySessionPage() {
           created_at: session.user.created_at,
           updated_at: session.user.updated_at || session.user.created_at,
         };
-        
+
         setUser(userData);
-        
+
         // Cargar los hijos del usuario
         const { data: children, error: childrenError } = await supabase
           .from('children')
           .select('*')
           .eq('parent_id', session.user.id)
           .order('created_at', { ascending: true });
-        
+
         if (!childrenError) {
           setChildren(children || []);
         }
-        
+
         // Redirigir al dashboard o a la página especificada
         const redirectTo = searchParams.get('redirect') || '/dashboard';
         router.push(redirectTo);
-        
       } catch (err) {
         setError('Ocurrió un error inesperado');
       } finally {
         setIsVerifying(false);
       }
     };
-    
+
     verifySession();
   }, [router, searchParams, setUser, setChildren]);
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="text-center">
-          <div className="mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+      <div className='min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 p-4'>
+        <div className='text-center'>
+          <div className='mb-4'>
+            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto'></div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Error de verificación</h1>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h1 className='text-xl font-semibold text-gray-900 mb-2'>
+            Error de verificación
+          </h1>
+          <p className='text-gray-600 mb-4'>{error}</p>
           <button
             onClick={() => router.push('/login')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700'
           >
             Volver al login
           </button>
@@ -94,19 +98,18 @@ export default function VerifySessionPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="text-center">
-        <div className="mb-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+    <div className='min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 p-4'>
+      <div className='text-center'>
+        <div className='mb-4'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
         </div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
+        <h1 className='text-xl font-semibold text-gray-900 mb-2'>
           {isVerifying ? 'Verificando sesión...' : 'Redirigiendo...'}
         </h1>
-        <p className="text-gray-600">
-          {isVerifying 
-            ? 'Estamos verificando tu sesión y cargando tus datos.' 
-            : 'Serás redirigido en unos momentos.'
-          }
+        <p className='text-gray-600'>
+          {isVerifying
+            ? 'Estamos verificando tu sesión y cargando tus datos.'
+            : 'Serás redirigido en unos momentos.'}
         </p>
       </div>
     </div>

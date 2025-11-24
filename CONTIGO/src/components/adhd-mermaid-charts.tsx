@@ -35,7 +35,7 @@ const TimelineChart: React.FC = () => {
       {steps.map((step, index) => (
         <div key={index} className='relative'>
           <div
-            className='absolute w-8 h-8 bg-chart-1 rounded-full -left-[1.375rem] top-1 flex items-center justify-center text-white font-bold text-sm'
+            className='absolute w-8 h-8 bg-chart-1 rounded-full -left-5.5 top-1 flex items-center justify-center text-white font-bold text-sm'
             aria-hidden='true'
           >
             {index + 1}
@@ -55,7 +55,7 @@ const TimelineChart: React.FC = () => {
  */
 const PyramidChart: React.FC = () => {
   return (
-    <div className='flex flex-col items-center justify-end h-64 space-y-[-1px]'>
+    <div className='flex flex-col items-center justify-end h-64 -space-y-px'>
       <div className='w-40 bg-accent text-accent-foreground p-3 text-center font-bold shadow-md z-30 flex items-center justify-center'>
         Recompensa Mayor
       </div>

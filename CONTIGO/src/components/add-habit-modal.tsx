@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Habit } from '@/types/database';
-import { assignHabitToRoutine } from '@/lib/routine-habits-service';
+import { assignHabitToRoutine } from '@/lib/services/routine-habits-service';
 import { Search, Plus, Loader2, Star, Filter, CheckCircle } from 'lucide-react';
 
 export interface HabitWithPoints extends Habit {
