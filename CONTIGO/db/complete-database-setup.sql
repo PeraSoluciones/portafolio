@@ -229,10 +229,6 @@ DROP TRIGGER IF EXISTS update_points_transactions_updated_at ON points_transacti
 CREATE TRIGGER update_points_transactions_updated_at BEFORE UPDATE ON points_transactions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-DROP TRIGGER IF EXISTS update_routine_habits_updated_at ON routine_habits;
-CREATE TRIGGER update_routine_habits_updated_at BEFORE UPDATE ON routine_habits
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 -- =====================================================
 -- 5. FUNCIONES DEL SISTEMA DE PUNTOS
 -- =====================================================

@@ -64,7 +64,7 @@ export function AvatarUpload({
       <Label>Avatar del hijo</Label>
 
       <div className='flex flex-row items-center gap-4'>
-        <div className='relative flex-shrink-0'>
+        <div className='relative shrink-0'>
           <div className='relative flex h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-100 ring-2 ring-gray-200'>
             {previewUrl ? (
               <img
@@ -74,7 +74,7 @@ export function AvatarUpload({
                 key={previewUrl}
               />
             ) : (
-              <div className='flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 text-xl font-medium text-gray-600'>
+              <div className='flex h-full w-full items-center justify-center bg-linear-to-br from-gray-200 to-gray-300 text-xl font-medium text-gray-600'>
                 {name ? getInitials(name) : 'HN'}
               </div>
             )}

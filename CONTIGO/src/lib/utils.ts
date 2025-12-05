@@ -36,7 +36,6 @@ export const formatedDate = (
   local: string = 'en-CA',
   timeZone: string = 'America/Guayaquil'
 ) => {
-
   return date.toLocaleDateString(local, {
     year: 'numeric',
     month: '2-digit',
@@ -65,4 +64,61 @@ export const extractFirstParagraphText = (htmlContent: string): string => {
     console.error('Error parsing HTML content:', error);
     return '';
   }
+};
+
+/**
+ * Get current date in a specific timezone, always returns YYYY-MM-DD format
+ * This ensures consistent date handling regardless of server timezone
+ * @param timezone - IANA timezone string (default: 'America/Guayaquil' for Ecuador)
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getLocalDateInTimezone = (
+  timezone: string = 'America/Guayaquil'
+): string => {
+  const now = new Date();
+
+  // Use Intl.DateTimeFormat to get date parts in the specified timezone
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: timezone,
+  });
+
+  // Format returns YYYY-MM-DD which is what we need
+  return formatter.format(now);
+};
+
+/**
+ * Format a date string for display to users
+ * @param dateString - Date in YYYY-MM-DD format
+ * @param locale - Locale for formatting (default: 'es-EC' for Ecuador Spanish)
+ * @returns Formatted date string for display
+ */
+export const formatDateForDisplay = (
+  dateString: string,
+  locale: string = 'es-EC'
+): string => {
+  // Parse date as local date (not UTC) to avoid timezone shifts
+  const [year, month, day] = dateString.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.toLocaleDateString(locale, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+/**
+ * Convert a Date object to YYYY-MM-DD string format
+ * This is safer than using toLocaleDateString for database storage
+ * @param date - Date object to convert
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const formatDateToString = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };

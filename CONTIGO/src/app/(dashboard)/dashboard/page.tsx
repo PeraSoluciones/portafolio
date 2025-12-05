@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Routine, Habit, Behavior, Reward, Child } from '@/types/database';
-import { cn, calculateAge } from '@/lib/utils';
+import { cn, calculateAge, getLocalDateInTimezone } from '@/lib/utils';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -164,7 +164,8 @@ export default function DashboardPage() {
       setTodayRoutines(todayRoutinesData);
 
       // Obtener completitud REAL de rutinas de hoy
-      const todayDate = new Date().toISOString().split('T')[0];
+      //   const todayDate = new Date().toISOString().split('T')[0];
+      const todayDate = getLocalDateInTimezone();
       const routineIds = todayRoutinesData.map((r) => r.id);
 
       if (routineIds.length > 0) {
@@ -638,69 +639,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-      )}
-
-      {/* Rutinas de hoy */}
-      {selectedChild && todayRoutines.length > 0 && (
-        <Card className='border-t-4 border-t-chart-1'>
-          <CardHeader>
-            <CardTitle className='flex items-center gap-2 text-foreground'>
-              <Clock className='h-5 w-5' />
-              Rutinas de hoy
-            </CardTitle>
-            <CardDescription className='text-muted-foreground'>
-              Progreso de las rutinas diarias de {selectedChild.name}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className='space-y-3'>
-              {todayRoutines.map((routine) => (
-                <div
-                  key={routine.id}
-                  className='flex items-center justify-between p-3 bg-card rounded-lg border'
-                >
-                  <div className='flex items-center space-x-3'>
-                    <div
-                      className={`w-5 h-5 rounded-full border-2 ${
-                        completedRoutines.includes(routine.id)
-                          ? 'bg-success border-success'
-                          : 'border-muted-foreground'
-                      }`}
-                    >
-                      {completedRoutines.includes(routine.id) && (
-                        <CheckCircle className='h-3 w-3 text-success-foreground' />
-                      )}
-                    </div>
-                    <div>
-                      <p className='font-medium text-foreground'>
-                        {routine.title}
-                      </p>
-                      <p className='text-sm text-muted-foreground'>
-                        {routine.time}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={
-                      completedRoutines.includes(routine.id)
-                        ? 'default'
-                        : 'outline'
-                    }
-                    className={
-                      completedRoutines.includes(routine.id)
-                        ? 'bg-success text-success-foreground'
-                        : ''
-                    }
-                  >
-                    {completedRoutines.includes(routine.id)
-                      ? 'Completada'
-                      : 'Pendiente'}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

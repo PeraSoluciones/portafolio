@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PointsBadge } from '@/components/ui/points-badge';
 import { useToast } from '@/hooks/use-toast';
@@ -34,14 +33,9 @@ import { Routine, Habit, Child } from '@/types/database';
 import { RoutineHabitAssignment } from '@/types/routine-habits';
 import { getAssignedHabits } from '@/lib/services/routine-habits-service';
 import { cn, calculateAge } from '@/lib/utils';
-
-// Tipo para el estado de un hábito en la vista de hoy
-interface HabitState {
-  habitId: string;
-  isCompleted: boolean;
-  pointsEarned?: number;
-  recordId?: string;
-}
+import { RoutineCard } from './components/RoutineCard';
+import { TodayStatsCards } from './components/TodayStatsCards';
+import type { HabitState, RoutineWithHabits } from './types';
 
 export default function TodayPage() {
   const router = useRouter();
@@ -113,6 +107,19 @@ export default function TodayPage() {
     }
   }, [selectedChild?.id]);
 
+  // Sincronizar selectedChild cuando children se actualiza (para refrescar balance)
+  useEffect(() => {
+    if (selectedChild && children.length > 0) {
+      const updatedChild = children.find((c) => c.id === selectedChild.id);
+      if (
+        updatedChild &&
+        updatedChild.points_balance !== selectedChild.points_balance
+      ) {
+        setSelectedChild(updatedChild);
+      }
+    }
+  }, [children]);
+
   const fetchData = async () => {
     if (!selectedChild) return;
 
@@ -144,7 +151,9 @@ export default function TodayPage() {
         created_at: routine.createdAt,
         updated_at: routine.updatedAt,
         habits: routine.habits.map((habit: any) => ({
-          habitId: habit.id,
+          routineHabitId: habit.id, // ID único de routine_habits
+          habitId: habit.habitId, // ID del hábito (para API)
+          routineId: routine.id, // ID de la rutina (para API)
           isCompleted: habit.isCompleted,
           recordId: habit.recordId,
           pointsEarned: habit.pointsValue,
@@ -153,7 +162,9 @@ export default function TodayPage() {
 
       const allHabitsState = data.routines.flatMap((routine: any) =>
         routine.habits.map((habit: any) => ({
-          habitId: habit.id,
+          routineHabitId: habit.id, // ID único de routine_habits
+          habitId: habit.habitId, // ID del hábito (para API)
+          routineId: routine.id, // ID de la rutina (para API)
           isCompleted: habit.isCompleted,
           recordId: habit.recordId,
           pointsEarned: habit.pointsValue,
@@ -164,8 +175,9 @@ export default function TodayPage() {
       const habitDetailsMap: Record<string, Habit> = {};
       data.routines.forEach((routine: any) => {
         routine.habits.forEach((habit: any) => {
-          habitDetailsMap[habit.id] = {
-            id: habit.id,
+          habitDetailsMap[habit.habitId] = {
+            // Usar habitId (habits.id) como key
+            id: habit.habitId,
             child_id: selectedChild.id,
             title: habit.title,
             description: habit.description,
@@ -194,10 +206,15 @@ export default function TodayPage() {
     }
   };
 
-  const handleToggleHabit = async (habitId: string, isChecked: boolean) => {
+  const handleToggleHabit = async (
+    routineHabitId: string, // Para actualizar estado local
+    habitId: string, // Para llamar al API
+    routineId: string, // Para enviar al API
+    isChecked: boolean
+  ) => {
     if (!selectedChild) return;
 
-    setIsSubmitting(habitId);
+    setIsSubmitting(routineHabitId); // Usar routineHabitId para isSubmitting
 
     try {
       // Usar el nuevo endpoint optimizado
@@ -208,6 +225,7 @@ export default function TodayPage() {
         },
         body: JSON.stringify({
           habit_id: habitId,
+          routine_id: routineId,
           is_completed: isChecked,
           child_id: selectedChild.id,
         }),
@@ -227,7 +245,7 @@ export default function TodayPage() {
 
         setHabitsState((prev) =>
           prev.map((h) =>
-            h.habitId === habitId
+            h.routineHabitId === routineHabitId
               ? {
                   ...h,
                   isCompleted: true,
@@ -243,7 +261,7 @@ export default function TodayPage() {
           prev.map((routine) => ({
             ...routine,
             habits: routine.habits.map((h) =>
-              h.habitId === habitId
+              h.routineHabitId === routineHabitId
                 ? {
                     ...h,
                     isCompleted: true,
@@ -284,12 +302,11 @@ export default function TodayPage() {
 
         setHabitsState((prev) =>
           prev.map((h) =>
-            h.habitId === habitId
+            h.routineHabitId === routineHabitId
               ? {
                   ...h,
                   isCompleted: false,
                   recordId: undefined,
-                  pointsEarned: 0,
                 }
               : h
           )
@@ -300,12 +317,11 @@ export default function TodayPage() {
           prev.map((routine) => ({
             ...routine,
             habits: routine.habits.map((h) =>
-              h.habitId === habitId
+              h.routineHabitId === routineHabitId
                 ? {
                     ...h,
                     isCompleted: false,
                     recordId: undefined,
-                    pointsEarned: 0,
                   }
                 : h
             ),
@@ -518,122 +534,12 @@ export default function TodayPage() {
         </Card>
       )}
 
-      {/* Estadísticas del día */}
-      {selectedChild && totalHabitsCount > 0 && (
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-          {/* Tarjeta de Progreso */}
-          <Card className='border-t-4 border-t-primary'>
-            <CardHeader>
-              <div className='flex items-center space-x-3 mb-2'>
-                <div className='text-primary'>
-                  <Target className='h-6 w-6' />
-                </div>
-                <CardTitle className='text-lg font-bold text-foreground'>
-                  Progreso del día
-                </CardTitle>
-              </div>
-              <CardDescription className='text-sm text-muted-foreground'>
-                Hábitos completados hoy
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='mb-4'>
-                <div className='flex items-baseline'>
-                  <span className='text-3xl font-bold text-primary'>
-                    {completedHabitsCount}
-                  </span>
-                  <span className='text-xl text-muted-foreground ml-1'>
-                    /{totalHabitsCount}
-                  </span>
-                </div>
-                <p className='text-xs text-muted-foreground mt-1'>
-                  Hábitos completados
-                </p>
-              </div>
-              <div className='w-full bg-primary/20 rounded-full h-2 mb-4'>
-                <div
-                  className='bg-primary h-2 rounded-full transition-all duration-300'
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-              <p className='text-sm text-muted-foreground'>
-                {Math.round(progressPercentage)}% completado
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Puntos Ganados */}
-          <Card className='border-t-4 border-t-secondary'>
-            <CardHeader>
-              <div className='flex items-center space-x-3 mb-2'>
-                <div className='text-secondary'>
-                  <Award className='h-6 w-6' />
-                </div>
-                <CardTitle className='text-lg font-bold text-foreground'>
-                  Puntos Ganados
-                </CardTitle>
-              </div>
-              <CardDescription className='text-sm text-muted-foreground'>
-                Total acumulado hoy
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='mb-4'>
-                <div className='flex items-baseline'>
-                  <span className='text-3xl font-bold text-secondary'>
-                    {totalPointsEarnedToday}
-                  </span>
-                  <Star className='h-5 w-5 text-secondary ml-2' />
-                </div>
-                <p className='text-xs text-muted-foreground mt-1'>
-                  Puntos obtenidos
-                </p>
-              </div>
-              {totalPointsEarnedToday > 0 && (
-                <div className='flex items-center space-x-1 text-sm text-secondary'>
-                  <CheckCircle className='h-4 w-4' />
-                  <span>¡Sigue así!</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Saldo Actual */}
-          <Card className='border-t-4 border-t-chart-1'>
-            <CardHeader>
-              <div className='flex items-center space-x-3 mb-2'>
-                <div className='text-chart-1'>
-                  <Star className='h-6 w-6' />
-                </div>
-                <CardTitle className='text-lg font-bold text-foreground'>
-                  Saldo Total
-                </CardTitle>
-              </div>
-              <CardDescription className='text-sm text-muted-foreground'>
-                {selectedChild && selectedChild.points_balance < 0
-                  ? 'Puntos en déficit'
-                  : 'Puntos disponibles'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='mb-4'>
-                <div className='flex items-baseline'>
-                  <PointsBadge
-                    points={selectedChild?.points_balance || 0}
-                    size='lg'
-                    variant='default'
-                  />
-                </div>
-              </div>
-              <Link href='/rewards'>
-                <Button variant='outline' size='sm' className='w-full'>
-                  Ver recompensas
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <TodayStatsCards
+        selectedChild={selectedChild}
+        completedHabitsCount={completedHabitsCount}
+        totalHabitsCount={totalHabitsCount}
+        totalPointsEarnedToday={totalPointsEarnedToday}
+      />
 
       {/* Rutinas de hoy */}
       {selectedChild && routines.length > 0 && (
@@ -643,97 +549,13 @@ export default function TodayPage() {
             Rutinas del día
           </h2>
           {routines.map((routine) => (
-            <Card key={routine.id} className='border-t-4 border-t-chart-2'>
-              <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <CardTitle className='text-xl text-foreground'>
-                      {routine.title}
-                    </CardTitle>
-                    <CardDescription className='text-muted-foreground'>
-                      {routine.time} - {routine.description}
-                    </CardDescription>
-                  </div>
-                  <Badge
-                    variant='outline'
-                    className='text-chart-2 border-chart-2'
-                  >
-                    {routine.habits.filter((h) => h.isCompleted).length}/
-                    {routine.habits.length} completados
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className='space-y-3'>
-                  {routine.habits.length === 0 ? (
-                    <p className='text-muted-foreground text-center py-4'>
-                      No hay hábitos asignados a esta rutina
-                    </p>
-                  ) : (
-                    routine.habits.map((habit) => (
-                      <div
-                        key={habit.habitId}
-                        className={cn(
-                          'flex items-center justify-between p-3 rounded-lg border transition-all duration-200',
-                          habit.isCompleted
-                            ? 'bg-green-50 border-green-200'
-                            : 'bg-gray-50 hover:bg-gray-100'
-                        )}
-                      >
-                        <div className='flex items-center space-x-3 flex-1'>
-                          <Checkbox
-                            id={habit.habitId}
-                            checked={habit.isCompleted}
-                            onCheckedChange={(checked) =>
-                              handleToggleHabit(
-                                habit.habitId,
-                                checked as boolean
-                              )
-                            }
-                            disabled={isSubmitting === habit.habitId}
-                            className={cn(
-                              'h-5 w-5',
-                              habit.isCompleted &&
-                                'text-green-600 border-green-600'
-                            )}
-                          />
-                          <div className='flex-1'>
-                            <label
-                              htmlFor={habit.habitId}
-                              className={cn(
-                                'font-medium cursor-pointer',
-                                habit.isCompleted
-                                  ? 'text-green-700 line-through'
-                                  : 'text-foreground'
-                              )}
-                            >
-                              {getHabitTitle(habit.habitId)}
-                            </label>
-                            {habit.pointsEarned && habit.pointsEarned > 0 && (
-                              <div className='flex items-center space-x-1 mt-1'>
-                                <Star className='h-4 w-4 text-yellow-500' />
-                                <span className='text-sm text-yellow-600 font-medium'>
-                                  {habit.pointsEarned} puntos
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className='flex items-center space-x-2'>
-                          {habit.isCompleted ? (
-                            <CheckCircle className='h-5 w-5 text-green-600' />
-                          ) : (
-                            isSubmitting === habit.habitId && (
-                              <Loader2 className='h-5 w-5 animate-spin text-muted-foreground' />
-                            )
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <RoutineCard
+              key={routine.id}
+              routine={routine}
+              isSubmitting={isSubmitting}
+              getHabitTitle={getHabitTitle}
+              onToggleHabit={handleToggleHabit}
+            />
           ))}
         </div>
       )}

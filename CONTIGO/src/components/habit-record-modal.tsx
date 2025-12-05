@@ -26,7 +26,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Habit, HabitRecord } from '@/types/index';
-import { formatedDate } from '@/lib/utils';
+import { formatDateToString } from '@/lib/utils';
 
 interface HabitRecordModalProps {
   habit: Habit | null;
@@ -64,8 +64,8 @@ export function HabitRecordModal({
 
     try {
       const supabase = createBrowserClient();
-      
-      const formattedDate = formatedDate(date);
+
+      const formattedDate = formatDateToString(date);
 
       // 1. Check for an existing record for this habit on this day
       const { data: existingRecord } = await supabase
@@ -106,7 +106,7 @@ export function HabitRecordModal({
           description: `${habit.title} ha sido registrado correctamente.`,
           variant: 'success',
         });
-        
+
         onOpenChange(false);
         if (onSuccess) {
           onSuccess(data as HabitRecord);
@@ -124,7 +124,8 @@ export function HabitRecordModal({
   };
 
   const incrementValue = () => {
-    if (value < habit.target_frequency * 2) { // Límite máximo para evitar abusos
+    if (value < habit.target_frequency * 2) {
+      // Límite máximo para evitar abusos
       setValue(value + 1);
     }
   };
@@ -137,7 +138,7 @@ export function HabitRecordModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>Registrar cumplimiento</DialogTitle>
           <DialogDescription>
@@ -145,25 +146,29 @@ export function HabitRecordModal({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="date">Fecha</Label>
+          <div className='grid gap-4 py-4'>
+            <div className='grid gap-2'>
+              <Label htmlFor='date'>Fecha</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant='outline'
                     className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
+                      'w-full justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {date ? (
+                      format(date, 'PPP', { locale: es })
+                    ) : (
+                      <span>Seleccionar fecha</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className='w-auto p-0'>
                   <Calendar
-                    mode="single"
+                    mode='single'
                     selected={date}
                     onSelect={(date) => date && setDate(date)}
                     initialFocus
@@ -171,66 +176,66 @@ export function HabitRecordModal({
                 </PopoverContent>
               </Popover>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="value">Valor registrado</Label>
-              <div className="flex items-center space-x-2">
+
+            <div className='grid gap-2'>
+              <Label htmlFor='value'>Valor registrado</Label>
+              <div className='flex items-center space-x-2'>
                 <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                  type='button'
+                  variant='outline'
+                  size='sm'
                   onClick={decrementValue}
                   disabled={value <= 0}
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className='h-4 w-4' />
                 </Button>
                 <Input
-                  id="value"
-                  type="number"
-                  min="0"
+                  id='value'
+                  type='number'
+                  min='0'
                   max={habit.target_frequency * 2}
                   value={value}
                   onChange={(e) => setValue(Number(e.target.value))}
-                  className="text-center"
+                  className='text-center'
                   required
                 />
                 <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                  type='button'
+                  variant='outline'
+                  size='sm'
                   onClick={incrementValue}
                   disabled={value >= habit.target_frequency * 2}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className='h-4 w-4' />
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className='text-sm text-gray-500'>
                 Objetivo: {habit.target_frequency} {habit.unit}
               </p>
             </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="notes">Notas (opcional)</Label>
+
+            <div className='grid gap-2'>
+              <Label htmlFor='notes'>Notas (opcional)</Label>
               <Textarea
-                id="notes"
+                id='notes'
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Añade notas sobre el cumplimiento de este hábito..."
+                placeholder='Añade notas sobre el cumplimiento de este hábito...'
                 rows={3}
               />
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type='button'
+              variant='outline'
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type='submit' disabled={isLoading}>
               {isLoading ? 'Registrando...' : 'Registrar'}
             </Button>
           </DialogFooter>

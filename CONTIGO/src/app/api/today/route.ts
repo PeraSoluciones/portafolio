@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
-import { formatedCurrentDate } from '@/lib/utils';
+import { getLocalDateInTimezone } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -51,12 +54,13 @@ export async function GET(request: NextRequest) {
       'SATURDAY',
     ];
     const todayName = dayNames[today];
-    const todayDate = formatedCurrentDate();
+    const todayDate = getLocalDateInTimezone();
 
     // Obtener rutinas de hoy con sus hábitos asignados
     const { data: routinesData, error: routinesError } = await supabase
       .from('routines')
-      .select(`
+      .select(
+        `
         *,
         routine_habits (
           id,
@@ -71,7 +75,8 @@ export async function GET(request: NextRequest) {
             unit
           )
         )
-      `)
+      `
+      )
       .eq('child_id', childId)
       .eq('is_active', true)
       .contains('days', [todayName])
@@ -82,19 +87,31 @@ export async function GET(request: NextRequest) {
       throw routinesError;
     }
 
-    // Obtener los IDs de todos los hábitos para verificar su estado
-    const habitIds = routinesData
-      ?.flatMap(routine => routine.routine_habits)
-      ?.map(rh => rh.habits.id) || [];
+    // Obtener todos los pares (routine_id, habit_id) para verificar su estado
+    const routineHabitPairs: { routineId: string; habitId: string }[] = [];
+    routinesData?.forEach((routine) => {
+      routine.routine_habits.forEach((rh) => {
+        routineHabitPairs.push({
+          routineId: routine.id,
+          habitId: rh.habits.id,
+        });
+      });
+    });
 
     let habitRecords: any[] = [];
-    
-    if (habitIds.length > 0) {
+
+    if (routineHabitPairs.length > 0) {
+      // Obtener los IDs únicos de hábitos
+      const uniqueHabitIds = [
+        ...new Set(routineHabitPairs.map((p) => p.habitId)),
+      ];
+
       // Verificar qué hábitos ya están completados hoy
+      // Ahora incluimos routine_id en la consulta para diferenciar entre rutinas
       const { data: records, error: recordsError } = await supabase
         .from('habit_records')
         .select('*')
-        .in('habit_id', habitIds)
+        .in('habit_id', uniqueHabitIds)
         .eq('date', todayDate);
 
       if (recordsError) {
@@ -106,45 +123,50 @@ export async function GET(request: NextRequest) {
     }
 
     // Estructurar los datos para el frontend
-    const formattedRoutines = routinesData?.map(routine => {
-      const habitsWithStatus = routine.routine_habits.map(rh => {
-        const record = habitRecords.find(hr => hr.habit_id === rh.habits.id);
-        
-        return {
-          id: rh.id,
-          habitId: rh.habits.id,
-          title: rh.habits.title,
-          description: rh.habits.description,
-          category: rh.habits.category,
-          targetFrequency: rh.habits.target_frequency,
-          unit: rh.habits.unit,
-          pointsValue: rh.points_value,
-          isRequired: rh.is_required,
-          isCompleted: !!record,
-          recordId: record?.id,
-          recordValue: record?.value,
-          recordNotes: record?.notes,
-        };
-      });
+    const formattedRoutines =
+      routinesData?.map((routine) => {
+        const habitsWithStatus = routine.routine_habits.map((rh) => {
+          // Buscar el registro específico para este hábito EN ESTA RUTINA
+          const record = habitRecords.find(
+            (hr) => hr.habit_id === rh.habits.id && hr.routine_id === routine.id
+          );
 
-      return {
-        id: routine.id,
-        title: routine.title,
-        description: routine.description,
-        time: routine.time,
-        days: routine.days,
-        isActive: routine.is_active,
-        createdAt: routine.created_at,
-        updatedAt: routine.updated_at,
-        habits: habitsWithStatus,
-        completedHabitsCount: habitsWithStatus.filter(h => h.isCompleted).length,
-        totalHabitsCount: habitsWithStatus.length,
-      };
-    }) || [];
+          return {
+            id: rh.id,
+            habitId: rh.habits.id,
+            title: rh.habits.title,
+            description: rh.habits.description,
+            category: rh.habits.category,
+            targetFrequency: rh.habits.target_frequency,
+            unit: rh.habits.unit,
+            pointsValue: rh.points_value,
+            isRequired: rh.is_required,
+            isCompleted: !!record,
+            recordId: record?.id,
+            recordValue: record?.value,
+            recordNotes: record?.notes,
+          };
+        });
+
+        return {
+          id: routine.id,
+          title: routine.title,
+          description: routine.description,
+          time: routine.time,
+          days: routine.days,
+          isActive: routine.is_active,
+          createdAt: routine.created_at,
+          updatedAt: routine.updated_at,
+          habits: habitsWithStatus,
+          completedHabitsCount: habitsWithStatus.filter((h) => h.isCompleted)
+            .length,
+          totalHabitsCount: habitsWithStatus.length,
+        };
+      }) || [];
 
     // Calcular estadísticas del día
-    const allHabits = formattedRoutines.flatMap(r => r.habits);
-    const completedHabits = allHabits.filter(h => h.isCompleted);
+    const allHabits = formattedRoutines.flatMap((r) => r.habits);
+    const completedHabits = allHabits.filter((h) => h.isCompleted);
     const totalPointsEarned = completedHabits.reduce(
       (total, habit) => total + (habit.pointsValue || 0),
       0
@@ -165,9 +187,10 @@ export async function GET(request: NextRequest) {
           totalRoutines: formattedRoutines.length,
           totalHabits: allHabits.length,
           completedHabits: completedHabits.length,
-          progressPercentage: allHabits.length > 0 
-            ? Math.round((completedHabits.length / allHabits.length) * 100)
-            : 0,
+          progressPercentage:
+            allHabits.length > 0
+              ? Math.round((completedHabits.length / allHabits.length) * 100)
+              : 0,
           totalPointsEarned,
         },
         todayInfo: {

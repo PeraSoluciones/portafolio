@@ -30,7 +30,7 @@ CREATE TABLE routines (
   title TEXT NOT NULL,
   description TEXT,
   time TEXT NOT NULL, -- Formato HH:MM
-  days TEXT[] NOT NULL, -- Array de días ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM']
+  days TEXT[] NOT NULL, -- Array de días ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { formatedCurrentDate } from '@/lib/utils';
+import { getLocalDateInTimezone } from '@/lib/utils';
 
 const toggleHabitSchema = z.object({
   habit_id: z.uuid('ID de hábito inválido'),
+  routine_id: z.uuid('ID de rutina inválido'),
   is_completed: z.boolean(),
   child_id: z.uuid('ID de hijo inválido'),
 });
@@ -31,7 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { habit_id, is_completed, child_id } = validationResult.data;
+    const { habit_id, routine_id, is_completed, child_id } =
+      validationResult.data;
 
     // Verificar que el usuario es padre del niño
     const { data: child, error: childError } = await supabase
@@ -68,7 +70,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const todayDate = formatedCurrentDate();
+    // ✅ Use timezone-safe date function to ensure consistency
+    const todayDate = getLocalDateInTimezone('America/Guayaquil');
 
     if (is_completed) {
       // Marcar como completado (crear o actualizar registro)
@@ -76,6 +79,7 @@ export async function POST(request: NextRequest) {
         .from('habit_records')
         .select('*')
         .eq('habit_id', habit_id)
+        .eq('routine_id', routine_id)
         .eq('date', todayDate)
         .single();
 
@@ -117,6 +121,7 @@ export async function POST(request: NextRequest) {
           .from('habit_records')
           .insert({
             habit_id: habit_id,
+            routine_id: routine_id,
             date: todayDate,
             value: 1,
             notes: 'Completado desde la vista de hoy',
@@ -128,14 +133,15 @@ export async function POST(request: NextRequest) {
           throw insertError;
         }
 
-        // Obtener puntos asignados a este hábito en rutinas
-        const { data: pointsData } = await supabase
+        // Obtener puntos asignados a este hábito en LA RUTINA ESPECÍFICA
+        const { data: routineHabit } = await supabase
           .from('routine_habits')
           .select('points_value')
-          .eq('habit_id', habit_id);
+          .eq('habit_id', habit_id)
+          .eq('routine_id', routine_id)
+          .single();
 
-        const totalPoints =
-          pointsData?.reduce((sum, item) => sum + item.points_value, 0) || 0;
+        const pointsEarned = routineHabit?.points_value || 0;
 
         return NextResponse.json({
           success: true,
@@ -145,7 +151,7 @@ export async function POST(request: NextRequest) {
               id: habit.id,
               title: habit.title,
             },
-            pointsEarned: totalPoints,
+            pointsEarned: pointsEarned,
             action: 'created',
           },
         });
@@ -156,6 +162,7 @@ export async function POST(request: NextRequest) {
         .from('habit_records')
         .select('*')
         .eq('habit_id', habit_id)
+        .eq('routine_id', routine_id)
         .eq('date', todayDate)
         .single();
 
@@ -201,7 +208,7 @@ export async function POST(request: NextRequest) {
             id: habit.id,
             title: habit.title,
           },
-          pointsLost: totalPoints,
+          pointsDeducted: totalPoints,
           action: 'deleted',
         },
       });

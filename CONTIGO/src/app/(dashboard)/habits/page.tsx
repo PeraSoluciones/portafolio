@@ -27,7 +27,7 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { AlertModal } from '@/components/ui/alert-modal';
 import { HabitRecordModal } from '@/components/habit-record-modal';
-import { formatedCurrentDate, formatedDate } from '@/lib/utils';
+import { getLocalDateInTimezone, formatedDate } from '@/lib/utils';
 
 export default function HabitsPage() {
   const { user, children, selectedChild, setSelectedChild } = useAppStore();
@@ -157,7 +157,7 @@ export default function HabitsPage() {
   };
 
   const getHabitProgress = (habit: Habit) => {
-    const today = formatedCurrentDate();
+    const today = getLocalDateInTimezone();
     const todayRecord = habitRecords.find(
       (record) =>
         record.habit_id === habit.id &&
@@ -170,7 +170,7 @@ export default function HabitsPage() {
   };
 
   const getTodayValue = (habit: Habit) => {
-    const today = formatedCurrentDate();
+    const today = getLocalDateInTimezone();
 
     const todayRecord = habitRecords.find(
       (record) =>

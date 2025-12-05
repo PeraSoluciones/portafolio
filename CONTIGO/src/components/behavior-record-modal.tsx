@@ -17,7 +17,7 @@ import { createBrowserClient } from '@/lib/supabase/client';
 import { Behavior, BehaviorRecord } from '@/types/index';
 import { Calendar, Save, X } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { formatedCurrentDate } from '@/lib/utils';
+import { getLocalDateInTimezone } from '@/lib/utils';
 
 interface BehaviorRecordModalProps {
   isOpen: boolean;
@@ -35,9 +35,7 @@ export default function BehaviorRecordModal({
   onSuccess,
 }: BehaviorRecordModalProps) {
   const [notes, setNotes] = useState('');
-  const [date, setDate] = useState(
-    formatedCurrentDate()
-  );
+  const [date, setDate] = useState(getLocalDateInTimezone('America/Guayaquil'));
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -48,7 +46,7 @@ export default function BehaviorRecordModal({
       setDate(behaviorRecord.date);
     } else {
       setNotes('');
-      setDate(formatedCurrentDate('en-CA', 'America/Guayaquil'));
+      setDate(getLocalDateInTimezone('America/Guayaquil'));
     }
   }, [behaviorRecord, isOpen]);
 
@@ -119,7 +117,7 @@ export default function BehaviorRecordModal({
 
       // Limpiar formulario y cerrar modal
       setNotes('');
-      setDate(formatedCurrentDate('en-CA', 'America/Guayaquil')); // Establecer la fecha actual en el campo de fecha
+      setDate(getLocalDateInTimezone('America/Guayaquil')); // Establecer la fecha actual en el campo de fecha
       onClose();
       onSuccess();
     } catch (err) {
@@ -140,7 +138,7 @@ export default function BehaviorRecordModal({
   const handleClose = () => {
     if (!isLoading) {
       setNotes('');
-      setDate(formatedCurrentDate('en-CA', 'America/Guayaquil'));
+      setDate(getLocalDateInTimezone('America/Guayaquil'));
       onClose();
     }
   };
@@ -171,7 +169,7 @@ export default function BehaviorRecordModal({
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              max={formatedCurrentDate('en-CA', 'America/Guayaquil')}
+              max={getLocalDateInTimezone('America/Guayaquil')}
             />
           </div>
 
