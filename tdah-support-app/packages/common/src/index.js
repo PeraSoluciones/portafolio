@@ -1,1 +1,0 @@
-// Punto de entrada para el código compartido (tipos, utilidades, etc.).

@@ -1,1 +1,0 @@
-// Punto de entrada para la aplicación móvil de React Native.

@@ -1,1 +1,0 @@
-// Punto de entrada para la aplicación web de React.
