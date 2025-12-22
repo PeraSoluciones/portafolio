@@ -135,6 +135,7 @@ export default function RoutinesPage() {
 
   const getDayLabel = (day: string) => {
     const dayLabels: { [key: string]: string } = {
+      // Abreviaturas en español
       LUN: 'Lun',
       MAR: 'Mar',
       MIÉ: 'Mié',
@@ -142,6 +143,14 @@ export default function RoutinesPage() {
       VIE: 'Vie',
       SÁB: 'Sáb',
       DOM: 'Dom',
+      // Nombres completos en inglés
+      MONDAY: 'Lun',
+      TUESDAY: 'Mar',
+      WEDNESDAY: 'Mié',
+      THURSDAY: 'Jue',
+      FRIDAY: 'Vie',
+      SATURDAY: 'Sáb',
+      SUNDAY: 'Dom',
     };
     return dayLabels[day] || day;
   };

@@ -41,13 +41,13 @@ import { cn } from '@/lib/utils';
 import { z } from 'zod';
 
 const daysOfWeek = [
-  { value: 'LUN', label: 'Lunes' },
-  { value: 'MAR', label: 'Martes' },
-  { value: 'MIÉ', label: 'Miércoles' },
-  { value: 'JUE', label: 'Jueves' },
-  { value: 'VIE', label: 'Viernes' },
-  { value: 'SÁB', label: 'Sábado' },
-  { value: 'DOM', label: 'Domingo' },
+  { value: 'MONDAY', label: 'Lunes' },
+  { value: 'TUESDAY', label: 'Martes' },
+  { value: 'WEDNESDAY', label: 'Miércoles' },
+  { value: 'THURSDAY', label: 'Jueves' },
+  { value: 'FRIDAY', label: 'Viernes' },
+  { value: 'SATURDAY', label: 'Sábado' },
+  { value: 'SUNDAY', label: 'Domingo' },
 ];
 
 export default function EditRoutinePage() {

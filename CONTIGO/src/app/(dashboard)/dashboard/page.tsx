@@ -605,7 +605,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <p className='text-xs text-muted-foreground mt-1'>
-                  Registrados esta semana
+                  Registrados
                 </p>
               </div>
               <div className='flex space-x-1 mb-4'>

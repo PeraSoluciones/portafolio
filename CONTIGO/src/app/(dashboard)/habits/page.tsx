@@ -158,27 +158,27 @@ export default function HabitsPage() {
 
   const getHabitProgress = (habit: Habit) => {
     const today = getLocalDateInTimezone();
-    const todayRecord = habitRecords.find(
-      (record) =>
-        record.habit_id === habit.id &&
-        formatedDate(new Date(record.created_at)) === today
+    // Sum all records for this habit today (across all routines)
+    const todayRecords = habitRecords.filter(
+      (record) => record.habit_id === habit.id && record.date === today
+    );
+    const totalValue = todayRecords.reduce(
+      (sum, record) => sum + record.value,
+      0
     );
 
-    if (!todayRecord) return 0;
+    if (totalValue === 0) return 0;
 
-    return Math.min((todayRecord.value / habit.target_frequency) * 100, 100);
+    return Math.min((totalValue / habit.target_frequency) * 100, 100);
   };
 
   const getTodayValue = (habit: Habit) => {
     const today = getLocalDateInTimezone();
-
-    const todayRecord = habitRecords.find(
-      (record) =>
-        record.habit_id === habit.id &&
-        formatedDate(new Date(record.created_at)) === today
+    // Sum all records for this habit today (across all routines)
+    const todayRecords = habitRecords.filter(
+      (record) => record.habit_id === habit.id && record.date === today
     );
-
-    return todayRecord?.value || 0;
+    return todayRecords.reduce((sum, record) => sum + record.value, 0);
   };
 
   const getCategoryLabel = (category: string) => {
