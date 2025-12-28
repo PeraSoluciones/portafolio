@@ -67,29 +67,32 @@ export function HabitRecordModal({
 
       const formattedDate = formatDateToString(date);
 
-      // 1. Check for an existing record for this habit on this day
+      // 1. Check for an existing record for this habit on this day (without routine)
       const { data: existingRecord } = await supabase
         .from('habit_records')
         .select('value')
         .eq('habit_id', habit.id)
+        .is('routine_id', null)
         .eq('date', formattedDate)
-        .single();
+        .maybeSingle();
 
       // 2. Calculate the new value
       const newValue = (existingRecord?.value || 0) + value;
 
       const recordData = {
         habit_id: habit.id,
+        routine_id: null, // Standalone habit record (not linked to a routine)
         date: formattedDate,
         value: newValue,
         notes,
       };
 
       // 3. Upsert the record with the new accumulated value
+      // The unique constraint is on (habit_id, routine_id, date)
       const { data, error } = await supabase
         .from('habit_records')
         .upsert(recordData, {
-          onConflict: 'habit_id,date',
+          onConflict: 'habit_id,routine_id,date',
         })
         .select()
         .single();
